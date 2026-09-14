@@ -878,15 +878,31 @@ qualitatively different kinds of evidence -- they share the same templated gener
 process and the same LLM annotator. MATH integration (\Cref{sec:math}) is in progress
 specifically to address this.
 
-\textbf{Unvalidated category labels.} Our category labels, like
-\citeauthor{thoughtanchors2025}'s own, are LLM-assigned with no inter-annotator
-agreement statistic reported by either work. This limitation applies to
+\textbf{Category label reliability: checked, substantial overall, one category fragile.}
+Our category labels were originally assigned without any inter-annotator agreement
+statistic -- a limitation \citeauthor{thoughtanchors2025} share, reporting none for their
+own labels either. We closed this with a genuinely independent second annotation (not a
+re-run of the same labeling process, since the original labels were produced by manual
+reading, not a callable procedure): a separate annotator, with no access to the original
+labels, re-labeled a 106-sentence stratified subsample of \textsc{countries\_capitals}
+(our best-powered dataset) from raw sentence text alone, using the identical published
+taxonomy. Cohen's $\kappa=0.714$ (``substantial'' agreement, raw agreement 80/106) --
+already ahead of \citeauthor{thoughtanchors2025}'s unreported figure. This aggregate
+number understates how uneven reliability actually is: six of seven testable categories
+show strong-to-perfect agreement (\texttt{uncertainty\_management} and
+\texttt{final\_answer\_emission} both 15/15; \texttt{problem\_setup} and
+\texttt{fact\_retrieval} both 14/15), but \texttt{result\_consolidation} shows
+\textbf{0/15} -- every single instance was relabeled as something else, spread across
+three other categories rather than concentrated on one confusable neighbor, indicating a
+genuine boundary weakness in this specific category rather than one annotator's
+idiosyncrasy. \texttt{active\_computation} remains untested (only one instance exists in
+the entire 50-sample labeled set). This limitation applies to
 \Cref{sec:results:position,sec:results:causal,sec:results:successor}, which use category
-labels; it does not apply to \Cref{sec:results:geometry,sec:results:causalgeom}, which
-are entirely label-free. \todo{Minimum fix not yet done: multi-LLM annotation with a
-$\kappa$ statistic (which would already put us ahead of \citeauthor{thoughtanchors2025},
-who report no human-agreement check at all). A human-validated stratified subsample of
-100--150 sentences would make this fully robust.}
+labels -- results resting specifically on \texttt{result\_consolidation} should be read
+with more caution than the rest -- and does not apply to
+\Cref{sec:results:geometry,sec:results:causalgeom}, which are entirely label-free.
+\todo{A fully human-validated stratified subsample, rather than a second LLM annotator,
+would make this stronger still; not yet done.}
 
 \textbf{The founding premise (delta vs.\ state) is open, and we do not build on it.} We
 tested whether tracking representational \emph{change} (our fingerprint object's
