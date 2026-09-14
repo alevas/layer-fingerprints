@@ -1,0 +1,12 @@
+# LaTeX build artifacts -- keep the repo to source files only. Not a blanket *.pdf: the
+# template ships icml_numpapers.pdf (a reference/style document, not a build output).
+*.aux
+*.bbl
+*.blg
+*.fdb_latexmk
+*.fls
+*.log
+*.out
+*.synctex.gz
+paper.pdf
+example_paper.pdf
