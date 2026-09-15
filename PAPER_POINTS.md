@@ -12,6 +12,53 @@ load-bearing rather than just descriptive.
 
 ---
 
+## Scope and contributions (abstract bullets, 2026-09-16)
+
+Written for drafting the abstract directly — kept here so it stays attached to the
+detailed sections below rather than drifting from them.
+
+**Scope:**
+- Studies how a token's residual-stream representation *changes* across depth during CoT
+  generation — not just its final state — via a compressed, label-free "fingerprint" of
+  per-layer deltas.
+- Primary model Qwen3-0.6B, 6 synthetic task families; cross-model check on Qwen3-8B
+  (13x larger, same family).
+- Three linked questions: does this delta-based structure carry real, clusterable
+  information; does filtering it by LRP relevance change what's recoverable; is any of
+  it causally load-bearing.
+
+**Contributions, ranked by actual strength (see "Honest stock-take" below for the full
+reasoning):**
+
+1. **Joint-necessity causal validation** — three individually low-importance,
+   individually redundant layers are jointly indispensable; survives escalating controls
+   (isotropic -> same-subspace permutation injection) and replicates with a *stronger*
+   effect on a second, structurally unrelated task family (41/41 samples,
+   $p=9\times10^{-13}$ vs. the original 30/30, $p=1.9\times10^{-9}$). The paper's most
+   decisive result.
+2. **Layer-locked clustering** — per-(token, layer-transition) delta clusters are
+   89-99% single-transition-specific, holding across a 5x range of k and replicating
+   *stronger* on a 13x larger model.
+3. **A dedicated, unsupervised `<think>`/`</think>` signature** — its own independent
+   component in every one of 10 dataset/model combinations tested, plus a reproducible
+   "wanders and returns" geometric archetype (elevated tortuosity, non-decaying
+   multi-lag persistence).
+4. **A concrete attention mechanism for one class of updates** — a specific head set
+   drives ordinal/successor prediction, verified with a genuine negative control (rules
+   out the "textbook" induction head), generalizing across task categories.
+5. **LRP-relevance filtering changes clustering, but not cleanly** — real effect on one
+   token class, absent or reversed on another depending on task family and filter
+   strength; reported as a genuine, only partially-understood asymmetry, not a clean win.
+6. **Single-layer causal/geometric metrics fail to detect the known joint effect** — a
+   validity problem for single-layer analysis specifically, motivating the group-level
+   and relevance-filtered approaches above over simpler per-layer descriptors.
+
+Honest ranking: 1-4 are solid, 5 is real but needs the caveat stated plainly in the
+abstract itself (not buried), 6 is a null that motivates rather than a "finding" on its
+own.
+
+---
+
 ## 1. Token information evolution & coexistence
 
 Representations encode information; clustering them (label-free, no hand-assigned
