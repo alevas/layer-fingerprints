@@ -87,47 +87,39 @@
 \printAffiliationsAndNotice{}
 
 \begin{abstract}
-We study how a token's residual-stream representation moves, not just where it ends up,
-across the depth of a language model generating a chain-of-thought (CoT) trace. For each
-token we build a label-free \emph{fingerprint}: the concatenation of its per-layer
-residual-stream deltas across every transition in the network. This object has a
-well-defined geometry that is far from a random walk -- population-median
-\emph{tortuosity} (path length over net displacement) of 1.84--2.02 across six task
-families, against a $\sqrt{27}\approx5.2$ isotropic random-walk baseline at the same
-depth -- and that geometry is not uniform across token roles.
-\texttt{<think>}/\texttt{</think>} tokens show a distinctive, reproducible archetype
-(tortuosity 2.62--2.70, no exceptions across all six datasets; a multi-lag directional
-persistence that never fully decays) that we term \emph{wanders and returns}, distinct
-from tokens that simply drift with the population. Independent component analysis
-recovers a dedicated \texttt{<think>} component in every dataset we test. We then ask
-whether this geometry is more than descriptive: does it predict which layers are
-\emph{causally} load-bearing? At the single-layer level, no -- geometric magnitude and
-reorientation are weak, non-significant predictors of causal importance, even after
-correcting for a specific confound (generic-perturbation vulnerability) that a naive
-read of the correlation would miss. But we show this null is a validity problem rather
-than a clean answer: the single-layer metric itself fails to detect the one causal
-effect this paper independently establishes three other ways (individually ranking
-21st/25th/26th of 28 layers), so its non-correlation with geometry is not yet
-informative either way. At the \emph{group} level, though, we find
-a real, controlled effect: three consecutive layers that are individually
-low-importance and individually redundant are jointly necessary -- bypassing them
-collapses the trace's answer while reasoning stays coherent, and this effect survives a
-permutation-based control (injecting another token's real, same-layer activity rather
-than isotropic noise) that rules out the most obvious alternative explanation. We report
-this net result plainly: representational geometry does not predict causal importance
-locally, but a joint-necessity structure exists and reproduces under stress-testing.
-Separately, we show sentence-category probes of CoT (the standard tool for asking
-whether internal state tracks reasoning structure) are substantially confounded by
-sequence position -- a label carrying no semantic content recovers 70--79\% of a real
-category probe's mutual information on five of six datasets -- and quantify what
-survives proper control. We report, rather than suppress, a null result on our own
-original methodological premise (tracking representational \emph{change} versus raw
-\emph{state}): our best-powered dataset favors state, and we treat the trajectory-geometry
-object above as useful on its own empirical merits, not because deltas have been shown to
-beat state at a downstream task. \todo{Second-model replication of the geometry results
-(Qwen3-8B and Phi-4-mini-reasoning generation is complete or in flight; Open gap 8
-analysis on either has not yet been run) and MATH-benchmark integration are in progress
-and not yet reflected in the numbers above -- see \Cref{sec:limitations}.}
+We study how a token's residual-stream representation changes, not just where it ends
+up, across the depth of a language model generating a chain-of-thought (CoT) trace. For
+each token we build a label-free \emph{fingerprint}: a compressed summary of its
+per-layer residual-stream deltas across every transition in the network, addressing
+directly how to compare a token's evolving computation without concatenating the full,
+high-dimensional representation at every layer. This delta-based object carries real,
+non-random structure: per-(token, layer-transition) clusters are 89--99\% single-
+transition-specific across six task families and, on a 13$\times$ larger second model, an
+even tighter band; independent component analysis recovers a dedicated
+\texttt{<think>}/\texttt{</think>} component in every dataset we test; and these tokens
+show a distinctive, reproducible \emph{wanders-and-returns} transformation signature
+(tortuosity 2.62--2.70 against a population baseline of 1.84--2.02, a multi-lag
+directional persistence that never fully decays) that a fully unsupervised object
+nonetheless recovers. We then test this paper's central methodological question
+directly: does filtering by LRP relevance -- restricting each token's residual-stream
+update to only its most task-relevant attention heads, projected through their own
+output weights, rather than pooling every head -- make delta-based clustering less
+noisy? The answer is real but not uniform: filtering improves recovery of one token
+class (\texttt{meta}, in six of nine dataset/model combinations tested) but degrades
+recovery of another (\texttt{noise}) specifically on three structurally distinct task
+families, where the signal filtering discards turns out to matter. We report this
+asymmetry plainly rather than as a clean confirmation of the filtering hypothesis.
+Separately, we ask whether any of this structure is causally load-bearing: three
+individually low-importance, individually redundant layers are jointly necessary --
+bypassing them collapses the CoT trace's answer while reasoning stays coherent -- and we
+show that single-layer geometric and causal metrics fail to even detect this known
+effect (individually ranking 21st/25th/26th of 28 layers), a validity problem rather
+than a null result. This joint-necessity effect, originally established on one dataset,
+now replicates on a second, structurally unrelated, well-powered task family with an
+even stronger effect (41 of 41 samples, $p=9\times10^{-13}$). \todo{Broader cross-model
+coverage (a second model scale is partially analyzed; two further model families are in
+progress) and MATH-benchmark integration are ongoing and not yet reflected in the
+numbers above -- see \Cref{sec:limitations}.}
 \end{abstract}
 
 \section{Introduction}
