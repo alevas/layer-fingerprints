@@ -22,18 +22,20 @@ against `PAPER_POINTS.md` (this paper's actual ICLR 27 Drafting scope), 2026-09-
 | `outputs/2026-09-14_14-47-03` (Qwen3-8B `days_of_week`) | 89%-layer-locked cross-model replication, LRP-filtering (§§2,5) |
 | `outputs/2026-09-14_14-48-33` (Qwen3-8B `numbers_letters`) | LRP-filtering (§5) |
 | `outputs/2026-09-14_15-15-38` (Qwen3-8B `ioi`) | LRP-filtering (§5) |
+| `outputs/alphabet/baseline/2026-07-01_17-47-56-alph-no-interv` | successor-circuit / induction-head thread (Open gap 7) — the letter-recitation base run: attention-sink → semantic anchor → preceding-letter (induction-like) → punctuation attribution pattern, and the check ruling out the synthetic layer-16-head-14 induction head as the real driver |
+| `alex_binding/cluster_res/2026-05-18_17-00-10` | successor-circuit thread, second ordinal category (`days_of_week`) — the cross-category generalization check (54.3% one-back attribution at layer 26, vs. letters' 53% at layer 16) |
 
 All paths relative to `/home/alevas/Desktop/workspace/playground/` (local) or
 `/home/alevas/playground/` (cluster) — same relative structure both places.
+
+**Note on the successor-circuit pair (decided with the user, 2026-09-16):** included as
+eligible even though the successor-circuit/induction-head finding isn't one of
+`PAPER_POINTS.md`'s six numbered sections outright — it's a real, on-scope mechanistic
+result (does the token-transformation structure connect to an identifiable computational
+circuit, i.e. induction-like attention heads) and belongs alongside the rest of this
+paper's evidence, not held out as a separate direction.
 
 ## Not eligible (real, load-bearing for the *broader* project, wrong paper)
 
 `outputs/2026-09-10_18-32-22` (Apertus, parked), any Nemotron/SmolLM3/Phi-4 bridge-model
 output, `outputs/math_pilot/*`, the Qwen3-8B 100-sample `countries_capitals` run.
-
-## Uncertain — not this assistant's call
-
-`outputs/alphabet/baseline/2026-07-01_17-47-56-alph-no-interv` and
-`alex_binding/cluster_res/2026-05-18_17-00-10` — back the Open gap 7
-induction-head/successor-circuit thread, not one of `PAPER_POINTS.md`'s six sections.
-Flagged, not classified either way, pending a decision with the user.
