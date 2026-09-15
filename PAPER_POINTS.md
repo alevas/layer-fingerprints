@@ -171,6 +171,49 @@ holds up, test whether the layers it implicates are actually load-bearing.
 
 ---
 
+## Honest stock-take: what actually works (2026-09-16)
+
+An explicit strength ranking, asked for directly and worth keeping current rather than
+letting the strongest-sounding prose win by default. Re-derive this whenever a new sweep
+or replication lands — the LRP-filtering entry below is a live example of a result that
+looked strong on a single point and got visibly weaker under its own robustness check.
+
+**Strongest — real, replicated, decisive:**
+
+1. **Joint-necessity causal validation (§6)** — layers 24-26 individually redundant,
+   jointly indispensable, survived escalating controls, and now replicated on `ioi50`
+   with an *even stronger* effect (41/41 samples, $p=9\times10^{-13}$, vs. the original
+   30/30, $p=1.9\times10^{-9}$). Two structurally unrelated task families, same effect,
+   strengthening under replication rather than weakening. The single most decisive result
+   in the paper.
+2. **89%-layer-locked clustering (§2/§3)** — 89-99% single-transition-specificity, holds
+   across a 5x range of k, replicates *stronger* on a second model (Qwen3-8B: 95-99%,
+   above the entire 0.6B band).
+3. **ICA's `<think>` component (§2)** — dedicated, distinctive, in every dataset tested,
+   no exceptions. The project's own standing description: "the most robust finding of
+   this thread."
+4. **"Wanders and returns" (§3)** — reproducible archetype, no exceptions across 6
+   datasets.
+5. **The successor circuit (§5)** — real head set, a genuine negative control that
+   actually ruled something out (the textbook synthetic induction head), replicates on a
+   second ordinal category.
+
+**Foundational, solid but not headline-grade:** meta/noise label-free clustering (§1) —
+reliable, but it's validity infrastructure for the rest, not a standalone finding.
+
+**Shaky — needs honest treatment, not overweighting:**
+
+- **LRP head-filtering (§5)** — currently written up as this paper's centerpiece
+  (including in the rewritten abstract), but the `top_k` sweep showed the `noise` result
+  isn't robust (flips sign across the range). `meta`'s robustness across the same range
+  hasn't been checked yet and may have the same problem. Right now this is the
+  *least*-supported claim in the paper, not the strongest — the abstract overweighted it
+  before the sweep exposed the fragility. **Action item: sweep `meta` across the same
+  `top_k` range before the abstract's framing is trusted as final.**
+- **Open gap 6's causal half** — a real null (fingerprint purity doesn't predict causal
+  importance), reframed as motivating the paper's more sophisticated methods rather than
+  standalone evidence. Useful context, not a "works."
+
 ## Explicitly out of scope for this paper (real work, wrong paper)
 
 - **LRP-conservation checks** — verification that the LRP machinery is trustworthy on a
