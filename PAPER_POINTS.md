@@ -318,8 +318,13 @@ reliable, but it's validity infrastructure for the rest, not a standalone findin
   isn't robust (flips sign across the range). `meta`'s robustness across the same range
   hasn't been checked yet and may have the same problem. Right now this is the
   *least*-supported claim in the paper, not the strongest — the abstract overweighted it
-  before the sweep exposed the fragility. **Action item: sweep `meta` across the same
-  `top_k` range before the abstract's framing is trusted as final.**
+  before the sweep exposed the fragility. **Action item (expanded 2026-09-16, full plan
+  in `PROJECT_PROGRESS.md`'s "LRP head-filtering solidification plan"): sweep `meta`
+  across the same `top_k` range, add a random-seed dimension to establish the noise
+  floor, sweep `n_clusters` too (2D grid, not two 1D sweeps), stop trusting F1 from
+  thin (n<~20) classes, and consider reporting the full `top_k`-vs-delta curve as the
+  actual result instead of a single operating point — before the abstract's framing is
+  trusted as final.**
 - **Open gap 6's causal half** — a real null (fingerprint purity doesn't predict causal
   importance), reframed as motivating the paper's more sophisticated methods rather than
   standalone evidence. Useful context, not a "works."
