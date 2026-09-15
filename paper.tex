@@ -1,19 +1,13 @@
 %%%%%%%% LAYER FINGERPRINTS -- ICML DRAFT %%%%%%%%%%%%%%%%%
-% DRAFT STATUS (2026-09-14): restructured to match the paper-scope decision settled
-% 2026-09-14 (user + layer-fingerprints-30) and recorded in METAPLAN.md section 6:
-% Paper 1 leads with Open gap 8 (label-free trajectory geometry + its causal-geometry
-% link), NOT the position-confound methods-critique that led the 2026-09-11 draft, and
-% NOT a claim that tracking representational change outperforms tracking state -- that
-% premise (H1/H2/H3 in METAPLAN.md section 1.5) is HELD and not revisited; deltas are
-% used here as a supporting analysis substrate, not defended as superior to state.
-% The position-confound material is real and stays, but demoted to a supporting/
-% methodological section, matching METAPLAN.md section 1's own framing ("A becomes a
-% defensive section explaining why the sentence-category route is the wrong instrument,
-% not the headline"). \todo{} notes throughout mark work still in progress (MATH
-% integration, second-model Open gap 8 analysis on Qwen3-8B/Phi-4-mini-reasoning,
-% multi-annotator label validation, AMI permutation calibration). Numbers are
-% transcribed as faithfully as possible from STATUS.md/PROJECT_PROGRESS.md/METAPLAN.md;
+% REWRITTEN 2026-09-16 from scratch (previous body deleted) against PAPER_POINTS.md,
+% the curated, scope-anchored story for this specific paper (see
+% notion/Alex Fingerprinting/ICLR 27 Drafting *.md for the scope doc itself). Content
+% and numbers are transcribed from PAPER_POINTS.md / STATUS.md / PROJECT_PROGRESS.md;
 % if this draft and those ever disagree, the markdown files are the source of truth.
+% Headlined by the actually-strongest result (joint necessity, replicated) rather than
+% the single-layer geometry-predicts-causal-importance framing of the previous draft,
+% which is a null result, not a positive finding -- see PAPER_POINTS.md's "Honest
+% stock-take" section for the full ranking this structure follows.
 
 \documentclass{article}
 
@@ -22,11 +16,6 @@
 \usepackage{subcaption}
 \usepackage{booktabs}
 \usepackage{hyperref}
-% algpseudocode and subfigure removed from the template's original package list --
-% both conflict with packages already loaded above (algpseudocode's algorithmic
-% environment vs. the icml2026 style's own; subfigure vs. subcaption) and produce
-% "Command already defined" errors on a current TeX Live install. Neither is used
-% anywhere in this paper's content, so they're dropped rather than worked around.
 \newtheorem{definition}{Definition}
 \usepackage{array}
 \usepackage{ragged2e}
@@ -61,13 +50,13 @@
 
 \usepackage[textsize=tiny]{todonotes}
 
-\icmltitlerunning{Trajectory Geometry Predicts Group-Level Causal Importance in Chain-of-Thought}
+\icmltitlerunning{Layer Fingerprints: Structure, Relevance, and Joint Necessity in CoT}
 
 \begin{document}
 
 \twocolumn[
-  \icmltitle{Straighter Than Random, Curved Where It Matters: The Geometry of\\
-             Layer-wise Reasoning Trajectories and What It Predicts}
+  \icmltitle{Individually Redundant, Jointly Necessary: Label-Free Layer Fingerprints\\
+             and Relevance-Filtered Structure in Chain-of-Thought Reasoning}
 
   \icmlsetsymbol{equal}{*}
 
@@ -79,7 +68,7 @@
   \icmlaffiliation{yyy}{Department of XXX, University of YYY, Location, Country}
   \icmlcorrespondingauthor{Firstname1 Lastname1}{first1.last1@xxx.edu}
 
-  \icmlkeywords{interpretability, chain-of-thought, layer-wise relevance propagation, representational geometry, mechanistic interpretability}
+  \icmlkeywords{interpretability, chain-of-thought, layer-wise relevance propagation, mechanistic interpretability}
 
   \vskip 0.3in
 ]
@@ -87,945 +76,245 @@
 \printAffiliationsAndNotice{}
 
 \begin{abstract}
-We study how a token's residual-stream representation changes, not just where it ends
-up, across the depth of a language model generating a chain-of-thought (CoT) trace. For
-each token we build a label-free \emph{fingerprint}: a compressed summary of its
-per-layer residual-stream deltas across every transition in the network, addressing
-directly how to compare a token's evolving computation without concatenating the full,
-high-dimensional representation at every layer. This delta-based object carries real,
-non-random structure: per-(token, layer-transition) clusters are 89--99\% single-
-transition-specific across six task families and, on a 13$\times$ larger second model, an
-even tighter band; independent component analysis recovers a dedicated
-\texttt{<think>}/\texttt{</think>} component in every dataset we test; and these tokens
-show a distinctive, reproducible \emph{wanders-and-returns} transformation signature
-(tortuosity 2.62--2.70 against a population baseline of 1.84--2.02, a multi-lag
-directional persistence that never fully decays) that a fully unsupervised object
-nonetheless recovers. We then test this paper's central methodological question
-directly: does filtering by LRP relevance -- restricting each token's residual-stream
-update to only its most task-relevant attention heads, projected through their own
-output weights, rather than pooling every head -- make delta-based clustering less
-noisy? The answer is real but not uniform: filtering improves recovery of one token
-class (\texttt{meta}, in six of nine dataset/model combinations tested) but degrades
-recovery of another (\texttt{noise}) specifically on three structurally distinct task
-families, where the signal filtering discards turns out to matter. We report this
-asymmetry plainly rather than as a clean confirmation of the filtering hypothesis.
-Separately, we ask whether any of this structure is causally load-bearing: three
-individually low-importance, individually redundant layers are jointly necessary --
-bypassing them collapses the CoT trace's answer while reasoning stays coherent -- and we
-show that single-layer geometric and causal metrics fail to even detect this known
-effect (individually ranking 21st/25th/26th of 28 layers), a validity problem rather
-than a null result. This joint-necessity effect, originally established on one dataset,
-now replicates on a second, structurally unrelated, well-powered task family with an
-even stronger effect (41 of 41 samples, $p=9\times10^{-13}$). \todo{Broader cross-model
-coverage (a second model scale is partially analyzed; two further model families are in
-progress) and MATH-benchmark integration are ongoing and not yet reflected in the
-numbers above -- see \Cref{sec:limitations}.}
+We study how a token's residual-stream representation \emph{changes} across depth
+during chain-of-thought (CoT) generation, not just its final state, via a compressed,
+label-free \emph{fingerprint}: a random-projected summary of a token's per-layer deltas
+concatenated across every transition. On our primary model (Qwen3-0.6B, six synthetic
+task families) this object carries real, non-random structure: per-(token,
+layer-transition) clusters are 89--99\% single-transition-specific, and independent
+component analysis recovers a dedicated \texttt{<think>}/\texttt{</think>} component in
+every one of ten dataset/model combinations tested, including a 13$\times$ larger
+second model (Qwen3-8B), where both results replicate and strengthen. Three geometric
+metrics (path tortuosity, transition-specificity, and multi-lag directional persistence)
+converge on a further finding: each model carries its own task-invariant geometric
+signature, distinct from other models -- a genuine model-level fingerprint, not merely a
+per-layer one. We then test this paper's central methodological question directly: does
+restricting each token's residual-stream update to only its most LRP-relevant attention
+heads (projected through their own output weights) make delta-based clustering less
+noisy than pooling every head? The answer is real but asymmetric -- it improves recovery
+of one token class in most cases tested and degrades another in a task-family-specific,
+not fully robust way -- and we report this honestly rather than as a clean confirmation.
+Separately, we identify a concrete attention-level mechanism (a specific head set, ruling
+out the textbook synthetic induction head as a negative control) that implements ordinal
+successor prediction and generalizes across task categories while relocating in depth.
+Finally, we show this structure is causally load-bearing: three individually
+low-importance, individually redundant layers are jointly necessary -- bypassing them
+collapses the CoT trace's answer while reasoning stays coherent -- and this survives
+escalating controls and \emph{replicates with a stronger effect} on a second,
+structurally unrelated task family (41 of 41 samples, $p=9\times10^{-13}$, versus the
+original 30 of 30, $p=1.9\times10^{-9}$). Single-layer geometric and causal metrics fail
+to even detect this known effect, a validity problem rather than a null result,
+motivating the group-level and relevance-filtered analyses above over simpler per-layer
+description.
 \end{abstract}
 
 \section{Introduction}
 \label{sec:intro}
 
-A growing body of work studies large language models' chain-of-thought (CoT) traces not
-as opaque text but as a sequence of functionally distinct steps -- \emph{problem setup},
-\emph{fact retrieval}, \emph{active computation}, \emph{result consolidation}, and so on
-\citep{wei2022cot,thoughtanchors2025}. Almost all of this work asks what a token's
-representation encodes \emph{at} a layer -- a static, per-layer question. We ask a
-different question: what does the \emph{path} a token's representation takes across
-depth look like, and does that path carry information a single snapshot cannot?
+Standard interpretability practice analyzes what a token's representation \emph{is} at a
+given layer. A complementary signal is available: what \emph{changes} between layers --
+a token's per-layer delta -- which in principle indexes the computation performed on it,
+not just its resting state. If tokens undergoing similar computations produce similar
+deltas, clustering delta sequences should recover functionally meaningful groups without
+ever seeing a task label. Prior work on CoT (e.g. \emph{thought anchors},
+\citealp{thoughtanchors2025}) argues that some reasoning steps are more important than
+others, but has not linked that claim to internal computation directly. We ask three
+linked questions. First, does a compressed, label-free summary of a token's depth-wise
+trajectory -- a \emph{fingerprint} -- carry real, clusterable structure at all? Second,
+does filtering that structure by what the model itself judges relevant (layer-wise
+relevance propagation, LRP; \citealp{bach2015lrp}) change what is recoverable? Third, is
+any of this structure causally load-bearing, or merely descriptive?
 
-We build a purely representational, label-free per-token object -- a \emph{fingerprint}
-(\Cref{sec:methods:fingerprint}) formed from the residual-stream delta at every layer
-transition -- and characterize its geometry directly. Two things are true of this
-geometry that, to our knowledge, have not been reported before. First, at the population
-level, these paths are far straighter than chance: median tortuosity (path length over
-net displacement) of 1.84--2.02 against an isotropic random-walk baseline of
-$\sqrt{27}\approx5.2$, holding across six structurally different task families with no
-exceptions. Second, this straightness is not uniform: \texttt{<think>}/\texttt{</think>}
-tokens systematically deviate from the population in a specific, reproducible way -- a
-\emph{wanders and returns} archetype, elevated tortuosity paired with strong growth in
-representational distinctiveness across depth -- while a multi-lag directional analysis
-rules out two simpler alternative descriptions of the same phenomenon (pure
-position-noise, and period-2 alternation).
-
-Having established that trajectory geometry is a real, reproducible object, we ask
-whether it is more than descriptive. \textbf{Does per-layer geometry predict per-layer
-causal importance?} We measure two geometric quantities at every layer -- update
-magnitude and reorientation (the cosine between successive deltas) -- and correlate each
-against a causal-importance ground truth built from a matched-magnitude bypass-versus-injection
-design (\Cref{sec:methods:causalgeom}). At the single-layer level the answer is no: neither
-predictor is significant, even after we correct the causal target for a specific
-confound (a layer's vulnerability to a \emph{generic}, content-free perturbation of the
-same size) that a naive reading of an earlier, unplanned correlation would have missed.
-But single-layer causal importance itself turns out to be a poor instrument here: three
-consecutive layers that individually rank near the bottom of all layers by causal
-importance are, together, strictly necessary -- removing all three collapses the CoT
-trace's final answer while reasoning stays coherent, an effect that survives replacing
-isotropic-noise injection with a harder, same-subspace permutation control (injecting
-another token's own observed activity at the same layer). Geometry does not predict this
-joint effect either, at the resolution we can currently measure it -- consistent with,
-though not proof of, a broader pattern in this project that representational
-distinctiveness and causal importance are different axes.
-
-Separately from the geometry results, we audit the standard tool this line of work uses
-to ask whether internal state tracks CoT structure at all: a \emph{sentence-category
-probe}, which pools a sentence's activations and predicts a functional category label.
-We show this style of probe is confounded by sequence position -- the category taxonomy
-used throughout this line of work is quasi-ordinal by construction, so a label carrying
-no semantic content whatsoever already recovers most of a real probe's signal -- verify
-this confound is present, unaddressed, in the leading published result of this kind, and
-quantify what genuine content signal survives a proper control
-(\Cref{sec:results:position}). We report this as a supporting methodological
-contribution, not the paper's headline: it establishes what a category-probe number can
-and cannot be trusted to mean, and motivates why we build a label-free alternative
-(the fingerprint's geometry) as our primary instrument instead.
-
-Finally, in the course of building the fingerprint object, we tested this project's
-original methodological premise -- that tracking layer-to-layer \emph{change} is a
-better probe substrate than tracking raw \emph{state} -- against the natural baseline
-(clustering raw residual-stream activations instead of deltas). \textbf{We report this
-honestly as unresolved}, and, having found no evidence for it, do not build the paper's
-central claim on it: the geometric results above stand on their own empirical merits
-(they describe a real, measured object), not on a prior claim that deltas are the
-superior representational choice (\Cref{sec:limitations}).
-
-\textbf{Contributions.}
-\begin{enumerate}[topsep=1pt, partopsep=0pt, itemsep=0pt, leftmargin=0.7cm]
-\renewcommand{\labelenumi}{(\theenumi)}
-\item We introduce a label-free, per-token fingerprint object built from residual-stream
-  deltas and characterize its geometry directly: paths are far straighter than an
-  isotropic random walk at the population level (tortuosity 1.84--2.02 vs.\ $\sqrt{27}
-  \approx 5.2$), with no exceptions across six task families.
-\item We identify a reproducible, token-class-specific geometric archetype
-  (\texttt{<think>}/\texttt{</think>}'s \emph{wanders and returns} signature, tortuosity
-  2.62--2.70 with no exceptions) and pin its mechanism via a multi-lag directional
-  analysis that rules out two simpler alternative explanations.
-\item We test whether this geometry predicts causal importance. At the single-layer
-  level it does not, a null we verify is not an artifact of an uncontrolled causal
-  target. At the group level, we find and stress-test a real joint-necessity effect
-  that geometry also does not predict at our current resolution -- a result we report as
-  a genuine, checked null rather than a failure to find the right transformation of the
-  data.
-\item We show sentence-category CoT probes are confounded by sequence position,
-  quantify how much of an uncontrolled probe's signal this accounts for (70--79\% of AMI
-  on five of six datasets), verify the confound is present, unaddressed, in the leading
-  published result of this kind, and quantify what survives proper control.
-\item We report, rather than suppress, a null result on our own founding premise (delta
-  vs.\ state) and an explicit accounting of what currently blocks a fully general claim
-  (\Cref{sec:limitations}).
-\end{enumerate}
-
-\section{Related Work}
-\label{sec:related}
-
-\textbf{Representational geometry and dynamics.} Most mechanistic-interpretability work
-treats a layer's activation as the unit of analysis, asking what it encodes
-\citep{alain2016probing,belinkov2022probing}. We instead treat the \emph{path} a
-representation takes across layers as the unit of analysis, following the general
-intuition that a function is characterized by both its value and its rate of change; to
-our knowledge this specific object (a per-token, whole-depth, delta-based path summarized
-by simple geometric statistics) and its link to causal importance have not been
-previously reported.
-
-\textbf{Probing and its limits.} A long line of work cautions that probe accuracy alone
-does not establish that a model \emph{uses} the probed information
-\citep{alain2016probing,belinkov2022probing} -- a probe can succeed by recovering
-information latent in the input rather than information the model's computation depends
-on. Our position-confound result (\Cref{sec:results:position}) is a specific, structural
-instance of this general caution, applied to a taxonomy whose categories are correlated
-with an easily-recoverable nuisance variable (sequence position) by construction.
-
-\textbf{Chain-of-thought and thought anchors.} \citet{wei2022cot} popularized eliciting
-step-by-step reasoning traces from language models. \citet{thoughtanchors2025} propose
-analyzing such traces at sentence granularity, introducing an 8-category functional
-taxonomy and two measurement tools we build on: a resampling-based causal importance
-metric, and a sentence-category probe on pooled residual-stream activations. We audit the
-latter directly (\Cref{sec:results:position}) and adopt an attention-suppression variant
-of the former (\Cref{sec:methods:causal}).
-
-\textbf{Layer-wise relevance propagation for transformers.} LRP \citep{bach2015lrp}
-attributes a model's output back through its computation graph. \citet{ali2022xai}
-(CP-LRP) and \citet{achtibat2024attnlrp} (AttnLRP) both adapt LRP to transformer
-attention; our attribution pipeline follows the older, simpler CP-LRP convention (value
-receives all relevance, query/key receive none) rather than AttnLRP's gradient-split
-rule, a choice we revisit in \Cref{sec:methods:lrp}. We build on
-\citet{nanda2022transformerlens} for model internals access.
-
-\textbf{Successor and ordinal circuits.} \citet{gould2024successor} identify
-\emph{successor heads}: attention heads that specialize across many models and ordinal
-sequence types (days, months, numerals) in advancing a sequence by one step. Our
-successor-circuit result (\Cref{sec:results:successor}) is a direct, model-internal test
-of whether their claimed cross-category generality holds when the circuit is
-characterized mechanistically (via attribution) rather than only behaviorally, on task
-families we generate ourselves.
+We answer all three on Qwen3-0.6B \citep{qwen3} across six synthetic task families
+(letter and day-of-week recitation, number-letter pairing, country-capital recall, and
+indirect-object identification), with a second-model check on Qwen3-8B (13$\times$
+larger, same family). Our design is intentionally narrow: we do not claim state
+representations are less informative than deltas -- an earlier, broader test of that
+premise returned no clean answer across our six datasets (3 favor delta, 1 a coin flip,
+2 favor state, including the best-powered one) -- deltas here are a tool for building
+the fingerprint object, not a claim about representational superiority.
 
 \section{Methods}
 \label{sec:methods}
 
-\subsection{Task datasets and generation regime}
-\label{sec:methods:tasks}
-
-We use six synthetic reasoning tasks, each eliciting an explicit CoT trace via the
-\texttt{<think>}/\texttt{</think>} convention: \textsc{alphabet} and its disjoint variant
-\textsc{alphabet\_disjoint} (recite the next $k$ letters from a given starting letter),
-\textsc{days\_of\_week} (an analogous successor task over day names), \textsc{numbers\_letters}
-(a joint numeral/letter successor task), \textsc{countries\_capitals} (factual recall),
-and \textsc{ioi} (indirect-object identification, a name-tracking/coreference task). This
-spans ordinal-successor tasks, a factual-recall task, and a coreference task -- three
-qualitatively different demands on the model, not six variations of one task. All
-reported numbers use Qwen3-0.6B \citep{qwen3}, 28 layers.
-\todo{MATH \citep{hendrycks2021math} integration is in progress; see \Cref{sec:math} and
-\Cref{sec:limitations}.}
-
-All representational and relevance data reported here come from \textbf{greedy}
-decoding, generated with a custom generation loop that preserves gradient flow back
-through every layer for LRP (standard \texttt{HookedTransformer.generate} drops backward
-hooks past the embedding layer). Causal-importance measurements
-(\Cref{sec:methods:causal,sec:methods:causalgeom}) instead use \textbf{teacher-forced}
-forward passes over the same already-generated greedy sequence, with plain forward hooks
-(no backward pass, no relevance signal needed) rather than a fresh generation loop.
-Sampled decoding (temperature 0.6) is reserved for a separate, in-progress extension to
-the MATH dataset (\Cref{sec:math}), not used for any causal-importance number reported in
-this draft.
-
-\subsection{The fingerprint object}
-\label{sec:methods:fingerprint}
-
-For each token $t$ at each layer transition $\ell \to \ell{+}1$, we compute the
-residual-stream delta $\delta_t^\ell = h_t^{\ell+1} - h_t^\ell$. Following $L{-}1$
+\textbf{The fingerprint object.} For each token, we compute the residual-stream delta
+$\delta_t^\ell = h_t^{\ell+1} - h_t^\ell$ at every layer transition. Following
 independently-fit Gaussian random projections \citep{bingham2001random} (one per
-transition, $n_{\text{components}}=32$), we concatenate the projected deltas across all
-layer transitions into a single per-token vector -- a \emph{fingerprint} summarizing how
-a token's representation evolved across the \emph{entire} depth of the network, not its
-state at any one layer. This object is entirely label-free: it never sees a category
-label during construction, only token identities and raw activations. For
-\Cref{sec:results:cluster}'s clustering-based validity checks we further project the
-fingerprint matrix with t-SNE \citep{vandermaaten2008tsne} and cluster it with spectral
-clustering \citep{ng2001spectral} (nearest-neighbors affinity; neighbor count validated
-per dataset); for \Cref{sec:methods:geometry}'s geometric characterization we instead
-work with the raw per-layer delta sequence directly, with no clustering step.
+transition), we concatenate the projected deltas across all transitions into a single
+per-token vector. This is entirely label-free: construction never sees a category label,
+only token identities and raw activations.
 
-\textbf{Clustering validity.} Two token classes cluster reliably across a five-fold sweep
-of the cluster count $k$ (8--80), a change of random-projection seed, and four
-independent datasets: \emph{meta} tokens (\texttt{user}/\texttt{wants}/\texttt{asked})
-and \emph{noise} tokens (\texttt{\textbackslash n}, \texttt{<|endoftext|>},
-\texttt{<|im\_end|>}); noise reaches perfect precision at every $k$ in every dataset
-tested. An earlier reading of three distinct letter subgroups and a dedicated discourse
-cluster did \emph{not} survive the same sweep -- both were artifacts of a single blob
-being sliced arbitrarily finer as $k$ grows, not real substructure, and we report this
-retraction explicitly rather than silently dropping the earlier claim. At a finer
-granularity, per-(token, layer-transition) clusters (rather than the concatenated
-fingerprint) are 89--93\% single-transition-specific across a $5\times$ range of $k$
-(25--120) -- tokens mostly do not jump between clusters as depth increases, they occupy
-one characteristic transition-specific niche. \textbf{Cross-model check:} on Qwen3-8B
-(13$\times$ larger, 36 vs.\ 28 layers), the identical sweep gives 95.0--99.2\%
-single-transition specificity on two further task families (\textsc{days\_of\_week},
-\textsc{numbers\_letters}) -- above the entire 89--93\% band the primary model produces,
-not merely within it.
+\textbf{Clustering and validity.} We cluster fingerprints with spectral clustering
+\citep{ng2001spectral} (nearest-neighbors affinity) across a $k$-sweep, and separately
+cluster raw per-(token, layer-transition) deltas without concatenation, to test
+transition-locality directly. Two token classes serve as label-free validity checks
+throughout: \texttt{meta} (discourse-marker-like: \texttt{user}/\texttt{wants}/
+\texttt{asked}) and \texttt{noise} (\texttt{\textbackslash n}, \texttt{<|endoftext|>},
+\texttt{<|im\_end|>}, and model-specific terminal tokens).
 
-\textbf{Necessity.} We separately test whether the layers most associated with this
-structure are behaviorally load-bearing, via hard (zero-)ablation of layers 24--26 (as
-opposed to the softer clamping used in earlier pilot experiments, which only shows
-tolerance, not necessity). Three independent signals agree: behaviorally, the CoT trace
-itself stays coherent but the answer immediately following it collapses into repetition;
-representationally, the otherwise-always-pure noise cluster merges into an
-undifferentiated garbage cluster; and via a logit-lens \emph{next-token prediction
-accuracy} check (computed by projecting each layer's residual stream through the
-unembedding matrix and checking whether it recovers the token that immediately follows
-it), accuracy at the deepest layers drops from 89\% in a clean run to $\sim$11\% under
-ablation. (An earlier version of this analysis described this metric as
-"self-recoverability" -- whether a layer's own token identity remains linearly decodable
--- but a data-alignment audit established the metric, as implemented, is in fact
-next-token prediction accuracy; the 89\%/11\% numbers are unchanged, and we consider the
-corrected description, "ablating layers 24--26 destroys next-token prediction," a more
-direct claim than the original.) A full 28-layer bypass instead yields \emph{zero}
-relevance anywhere in the network -- a structural consequence of how bypassing severs the
-backward graph, not a bug -- so this comparison is only possible at the partial-ablation
-depth.
+\textbf{Independent component analysis.} On final-layer activations, we apply
+PCA-whitening (15 components) followed by FastICA \citep{hyvarinen2000ica} and measure,
+for each token type, the z-scored distinctiveness of its mean loading on every
+component relative to the population.
 
-\subsection{Trajectory geometry}
-\label{sec:methods:geometry}
+\textbf{LRP relevance and head filtering.} For each token at each layer, we decompose
+the attention block's exact contribution to the residual stream into its 16 (Qwen3-0.6B)
+or 32 (Qwen3-8B) per-head parts: head $h$'s output (\texttt{hook\_z}) projected through
+its own slice of $W_O$, summed over all heads recovers the model's real update exactly.
+We rank heads by LRP relevance magnitude and compare clustering built from all heads
+(\emph{unfiltered}) against clustering built from only the top-$K$ most relevant heads
+per token per layer (\emph{filtered}), using \texttt{meta}/\texttt{noise} best-cluster
+$F_1$ as the comparison metric.
 
-We characterize the raw per-layer delta sequence $\{\delta_t^1, \dots, \delta_t^{L-1}\}$
-of each token directly, with three statistics.
-
-\textbf{Tortuosity.} $\text{tort}(t) = \frac{\sum_\ell \|\delta_t^\ell\|}{\|\sum_\ell
-\delta_t^\ell\|}$, the ratio of total path length to net displacement -- 1 for a
-perfectly straight path, growing without bound for a path that wanders and returns
-toward its starting region. We compare the observed population median against a
-simulated isotropic random walk of the same dimensionality and step count ($\sqrt{27}
-\approx 5.196$ for our 28-layer model's 27 transitions).
-
-\textbf{Multi-lag directional persistence.} $\cos(\delta_t^{\ell}, \delta_t^{\ell+k})$
-for lag $k \in \{1,2,3,\dots,10\}$, averaged over tokens and layers. We use this rather
-than lag-1 cosine alone (a standard "linearity" metric) after establishing that lag 1 is
-specifically corrupted by position-level jitter decorrelation (\Cref{sec:results:geometry}) and
-does not represent the trajectory's true directional persistence.
-
-\textbf{Growing distinctness.} We z-score each token's per-layer distance from its
-population centroid and correlate this z-score against layer depth, giving a per-token
-"growth-correlation" -- whether a token becomes progressively more representationally
-distinct as depth increases.
-
-We additionally decompose the fingerprint matrix with independent component analysis
-\citep{hyvarinen2000ica}, motivated by principal component analysis (PCA) visibly
-blending multiple token-class signals into shared axes; ICA components are inspected for
-token-class purity rather than used as a downstream classifier.
-
-\subsection{LRP conservation and rule choices}
-\label{sec:methods:lrp}
-
-We verify, rather than assume, that our LRP implementation satisfies exact relevance
-conservation. For our primary model (Qwen3-0.6B, 28 layers), every one of 29 conservation
-checkpoints (the embedding layer plus all 28 residual-stream pre-layers) lands at a ratio
-of exactly $1.0000$ (float32 precision) against the model's own zero-bias architecture,
-under detach-based rules (\texttt{ln-rule-pre}, \texttt{ah-rule}, \texttt{half-rule-mlp},
-\texttt{identity-rule-act}) that make every genuinely nonlinear operation exactly
-homogeneous of degree 1 during backpropagation, so Euler's homogeneous function theorem
-guarantees exact conservation without further assumptions. The same mechanism transfers
-to a second model (Apertus-8B \citep{apertus}, 32 layers, 33 checkpoints): float32 ratios
-land in $0.999857$--$1.000000$, converging monotonically to exactly $1.0$ at the later
-layers -- a small residual spread we attribute to rounding rather than a rule mismatch,
-since a bfloat16 run of the identical check on the same model shows a much wider
-$0.9975$--$1.0037$ spread with no systematic drift by depth, the expected signature of
-precision noise scaling with the numeric format rather than a structural gap. A third
-model, Phi-4-mini-reasoning (fused gate/up MLP projection, requiring a separate
-bridge-based loading path since it uses a rotary-embedding scaling scheme our primary
-tooling does not implement), also reaches exact conservation ($0.99998$) once the
-corresponding MLP-activation rule is extended to its fused-projection architecture.
-We follow the older, simpler CP-LRP attention rule \citep{ali2022xai} (query and key
-receive 0\% relevance, value receives 100\%) rather than AttnLRP's newer gradient-split
-rule \citep{achtibat2024attnlrp} (25\%/25\%/50\%); we flag this as a deliberate,
-non-urgent methodological choice point rather than an error, since both are defensible
-and our conservation result does not distinguish between them.
-
-\subsection{Position-only control and conditional AMI}
-\label{sec:methods:position}
-
-We label every token position in every trace using Thought Anchors' 8-category taxonomy
-\citep{thoughtanchors2025} (\texttt{problem\_setup}, \texttt{fact\_retrieval},
-\texttt{active\_computation}, \texttt{result\_consolidation},
-\texttt{final\_answer\_emission}, and three further categories), assigned by an LLM
-annotator (see \Cref{sec:limitations} for the resulting caveat). We measure how well
-unsupervised fingerprint clusters agree with these category labels using adjusted mutual
-information (AMI) \citep{vinh2010ami}, which corrects for the chance agreement inflation
-that a naive purity metric is vulnerable to as cluster count grows.
-
-To test for a position confound, we construct a content-free control label
-$\text{pos}_i \in \{0, 1, \dots\}$ recording only a token's normalized rank within its
-sentence's trace -- no semantic content whatsoever -- and compute
-$\text{AMI}(\text{cluster}, \text{pos})$ identically to
-$\text{AMI}(\text{cluster}, \text{category})$. To measure what survives once position is
-held fixed, we compute a \emph{conditional} statistic: we bin tokens into $B$
-quantile-based position strata, compute AMI(cluster, category) independently within each
-stratum, and aggregate (size-weighted) across strata -- an empirical approximation to
-$I(\text{cluster}; \text{category} \mid \text{position})$, not the formal conditional
-mutual information estimator. We sweep $B \in \{4, 8, 16, 32\}$, since a single bin count
-is exactly the kind of unswept parameter our own earlier analysis warns against trusting.
-
-\subsection{Causal importance: attention suppression}
-\label{sec:methods:causal}
-
-We measure a sentence's causal importance with a metric adapted from, but not identical
-to, \citet{thoughtanchors2025}: suppress attention \emph{to} a sentence's token span
-(masking the relevant \texttt{hook\_attn\_scores} entries pre-softmax at every layer,
-verified directly to zero out post-softmax attention weight in the masked region while
-leaving other rows correctly normalized) and measure the resulting KL divergence between
-the suppressed and unperturbed \emph{local next-token} logit distributions at each
-downstream position, averaged per target sentence -- not, as in the original paper, a
-resampling-based estimate over full downstream answer distributions. We use this local
-proxy because our tasks' near-deterministic answers give the paper's own resampling
-metric little outcome variance to measure; both are evaluated via teacher-forced forward
-passes over the greedy trace (\Cref{sec:methods:tasks}), not sampled decoding.
-
-\subsection{Causal importance: layer-level bypass and matched-magnitude injection}
-\label{sec:methods:causalgeom}
-
-To test whether trajectory geometry predicts \emph{per-layer} causal importance, we
-build a second, finer-grained causal ground truth. For each layer $\ell$ and each
-sample, we compare two conditions of identical perturbation magnitude at the model's
-final-answer span: \textbf{(A, bypass)} replace layer $\ell$'s output with its input
-(removing $\delta^\ell$ entirely); \textbf{(B, injection)} leave $\delta^\ell$ in place
-and additively inject a perturbation of the same per-token norm, sourced two ways --
-(B1) an isotropic random direction, and (B2), a harder control, another token's own
-observed $\delta^\ell$ at the same layer, direction-normalized and rescaled to the
-target token's norm. B2 shares the perturbation's real activation statistics and
-effective subspace with the treatment condition, differing only in whose computation
-produced it, and is designed to rule out the specific alternative explanation that an
-isotropic direction is simply too far outside the residual stream's effective subspace
-to constitute a fair comparison. We measure KL divergence between clean and perturbed
-output distributions at the answer span, identically to \Cref{sec:methods:causal}. We
-apply this design at both the single-layer level (all 28 layers swept) and, for the
-specific three-layer block identified as behaviorally load-bearing in
-\Cref{sec:methods:fingerprint}, at the pairwise and triple-combination level.
-
-\subsection{State-vs-delta baseline}
-\label{sec:methods:statevsdelta}
-
-To test whether tracking change (deltas, \Cref{sec:methods:fingerprint}) is actually
-necessary for the clustering-based validity checks above -- as opposed to raw per-layer
-state carrying the same information -- we build a \emph{state fingerprint} using the
-identical projection and clustering pipeline, but applied to raw \texttt{resid\_pre}
-activations instead of layer-transition deltas, and compare AMI against the same
-category labels. We sweep the neighbor-count parameter of the spectral affinity graph
-symmetrically on \emph{both} the state and delta sides (5, 10, 15, 20, 25, 30, 40) rather
-than fixing one side to whatever was already on disk, after an earlier, asymmetric
-version of this comparison overstated the delta side's case (see
-\Cref{sec:limitations}). This test targets only the clustering object's ability to
-recover a category label, not the geometric characterization of
-\Cref{sec:methods:geometry}, which has no state-only analogue: raw per-layer state has
-no notion of tortuosity or directional persistence, since those are properties of a
-\emph{path}, not a point.
+\textbf{Causal necessity.} We test layers 24--26 (of 28) via hard zero-ablation
+(forcing $\text{resid\_post}_\ell = \text{resid\_pre}_\ell$) both individually and as a
+group, and via a matched-magnitude intervention design: bypassing a layer versus
+injecting a magnitude-matched perturbation at the same position, escalating from
+isotropic noise to a harder same-subspace control (another token's own observed
+activity, direction-normalized).
 
 \section{Results}
 \label{sec:results}
 
-\subsection{Trajectory geometry is a real, non-random object}
-\label{sec:results:geometry}
+We report results in order of evidentiary strength, following an explicit self-audit
+rather than the order in which analyses were run.
 
-\Cref{tab:tortuosity} reports population-median tortuosity across all six datasets
-against the isotropic random-walk baseline. Every dataset lands well below the
-random-walk value, with a tight cross-dataset range (1.84--2.02) despite the six task
-families spanning ordinal-successor, factual-recall, and coreference demands -- paths
-are considerably straighter than chance, a result we consider underrated relative to the
-token-class-specific findings that follow, since it establishes the geometric object
-itself is meaningfully structured before asking whether any single token class deviates
-from it.
+\subsection{Delta-based structure is real, not noise}
+\label{sec:results:structure}
 
-\begin{table}[t]
-\caption{Population-median tortuosity (path length / net displacement) by dataset,
-against a simulated isotropic random-walk baseline at the same depth and step count
-($\sqrt{27}\approx5.196$).}
-\label{tab:tortuosity}
-\centering
-\begin{small}
-\begin{tabular}{lc}
-\toprule
-Dataset & Tortuosity \\
-\midrule
-Random-walk baseline (simulated) & 5.196 \\
-\midrule
-\textsc{alphabet\_disjoint}  & 1.97 \\
-\textsc{alphabet}            & 1.97 \\
-\textsc{days\_of\_week}      & 1.91 \\
-\textsc{numbers\_letters}    & 1.88 \\
-\textsc{countries\_capitals} & 2.02 \\
-\textsc{ioi}                 & 1.84 \\
-\bottomrule
-\end{tabular}
-\end{small}
-\end{table}
+Population token paths are far straighter than an isotropic random walk at the same
+depth (population median tortuosity 1.84--2.02 across all six datasets, against a
+$\sqrt{27}\approx5.2$ baseline) -- establishing that there is real, non-random structure
+in the deltas before any clustering is attempted. Per-(token, layer-transition) clusters
+are \textbf{89--93\% single-transition-specific} across a $5\times$ range of $k$
+(25--120): tokens occupy a depth-local niche rather than a stable cross-layer identity.
+On Qwen3-8B this \textbf{replicates and strengthens}: 95.0--99.2\% across the identical
+$k$ range on two further task families, above the entire Qwen3-0.6B band at every $k$
+tested. Independent component analysis recovers a dedicated \texttt{<think>}/
+\texttt{</think>} component in \textbf{every one of ten dataset/model combinations}
+tested (z-magnitude 4.5--13.7), including all three Qwen3-8B datasets -- the single most
+consistent finding in this paper. These tokens additionally show a distinctive,
+reproducible \emph{wanders-and-returns} archetype (tortuosity 2.62--2.70 against the
+1.84--2.02 population baseline, a multi-lag directional persistence that never fully
+decays), recovered independently of the clustering or ICA results above.
 
-\textbf{A token-class-specific archetype.} \texttt{<think>}/\texttt{</think>} tokens
-show elevated tortuosity (2.62--2.70) in \emph{every} dataset without exception, paired
-with the tightest cross-dataset statistic in this paper: growth-correlation of
-0.90--0.94 for \texttt{</think>} (representational distinctiveness from the population
-centroid increases essentially monotonically with depth). We term this combination
--- large total path length relative to net displacement, together with steadily growing
-distinctiveness -- \emph{wanders and returns}: the token's representation does not settle
-early and drift, it actively explores before its final position stabilizes.
-\texttt{noise} tokens (\texttt{\textbackslash n}, \texttt{<|endoftext|>}) show a smaller,
-still-consistent elevation (2.30--2.37); no token class we test occupies the opposite
-extreme (tortuosity $\approx1$, a "moves far, straight" pattern), a clean constraining
-negative.
+\subsection{A model-level, not merely per-layer, fingerprint}
+\label{sec:results:modelfingerprint}
 
-\textbf{Resolving an apparent inconsistency.} A lag-1-only directional statistic
-(cosine between consecutive deltas) is weak and close to zero population-wide
-(0.036--0.073), which in isolation could be misread as "trajectories are close to a
-random walk in direction" -- apparently in tension with the tortuosity result above. A
-multi-lag sweep resolves this: cosine rises from lag 1 to a plateau at lags 2--3
-(0.107--0.153), then decays slowly without reaching zero by lag 10 (0.072--0.088).
-Simulating three candidate generating processes shows lag 1 specifically, and only lag 1,
-is suppressed by position-level jitter: pure position-noise-with-differencing predicts
-lag-1 $\approx -0.5$ (not observed); period-2 alternation predicts lag-3 $\approx 0$ with
-lag-10 elevated (the opposite of the observed shape). The data is best explained by a
-composite process -- drift-plus-step-noise setting the overall level, a modest amount of
-position-noise specifically suppressing lag 1, and genuine path curvature driving the
-slow decay at longer lags. We retract the "close to a random walk" reading and adopt a
-calibrated one: peak persistence ($\approx0.13$) is far below what a genuinely smooth
-path would show (simulated: 0.9+ at short lags), so the accurate description is a
-\textbf{mostly-diffusive path carrying a weak but persistent directional component} --
-neither "smooth trajectory" nor "random walk" is accurate on its own.
+The per-layer clustering result above is \emph{local} (which transition a token's delta
+belongs to). A separate question is whether the model as a whole carries a stable
+geometric signature across tasks. Three independent metrics converge: Qwen3-0.6B's
+population tortuosity sits in a tight 1.84--2.02 band across all six task families;
+Qwen3-8B's own band, 1.73--1.80, is tighter still and consistently \emph{below}
+Qwen3-0.6B's across all three of its datasets; Apertus-8B (a different architecture
+family) lands at 2.04, above Qwen3-0.6B's range. The same within-model-consistent,
+between-model-different pattern holds for transition-specificity (89--93\% vs.\
+95--99\%, Qwen3-0.6B vs.\ Qwen3-8B) and multi-lag persistence peak height
+(0.113--0.153 vs.\ 0.162--0.174). Only three models loaded the same way exist, one scale
+change and one architecture change at once, so we cannot yet separate whether this
+signature tracks model scale or architecture -- stated as an open question, not resolved
+here.
 
-\textbf{Independent components separate what PCA blends.} A principal-component
-projection of the fingerprint matrix visibly mixes multiple token-class signals into
-shared axes; ICA \citep{hyvarinen2000ica} cleanly separates them. \texttt{<think>} tokens
-receive a dedicated independent component in \emph{every one of six datasets} we test --
-the single most robust finding in this line of analysis. Discourse-marker tokens
-(\texttt{Let}/\texttt{So}/\texttt{But}-family words) share a distinct component with
-partial word-membership overlap, replicated across five of six datasets.
-
-\subsection{Trajectory geometry does not predict single-layer causal importance --
-but joint necessity is real and geometry does not predict that either}
-\label{sec:results:causalgeom}
-
-We first tested whether the two natural per-layer geometric summaries --
-$P_1(\ell) = \text{mean}_i\|\delta_i^\ell\|$ (magnitude) and $P_2(\ell) =
-\text{mean}_i\cos(\delta_i^{\ell-1},\delta_i^\ell)$ (reorientation) -- predict per-layer
-causal importance (\Cref{sec:methods:causalgeom}'s bypass condition, swept across all 28
-layers). Neither correlates significantly with raw bypass-KL (Spearman $\rho=-0.207$,
-$p=0.29$ for $P_1$; $\rho=0.023$, $p=0.91$ for $P_2$; $n=28$ layers, the correct unit of
-analysis since per-layer values are already aggregated across samples).
-
-\textbf{A validity problem, not a null result.} Layers 24--26, which
-\Cref{sec:methods:fingerprint} independently establishes as behaviorally load-bearing as
-a \emph{group}, individually rank 21st, 25th, and 26th of 28 by single-layer bypass-KL --
-near the bottom, not the top. The single-layer causal metric fails to detect the one
-causal effect this paper independently establishes three other ways
-(\Cref{sec:methods:fingerprint}), so a correlation against it is not yet informative
-about the geometric predictors either way.
-
-\textbf{Testing joint necessity directly.} We bypass layers 24, 25, and 26 in
-combination (pairs and the full triple) and compare against the matched-magnitude
-injection controls of \Cref{sec:methods:causalgeom}. \Cref{tab:jointnecessity} reports
-the triple: bypass produces far more damage than either injection control, in
-\emph{every one of 30 measured samples}, including the harder same-subspace permutation
-control (B2). The isotropic control (B1) somewhat overstates the effect (ratio
-6.9$\times$ mean) relative to the harder, same-subspace control (B2, ratio 5.1$\times$
-mean, 7.1$\times$ median) -- consistent with isotropic noise being a partially weaker
-perturbation than same-subspace content, as one would expect if the residual stream
-occupies a lower-effective-dimensional subspace than its ambient dimensionality -- but
-the qualitative result (bypass $\gg$ injection) survives the harder control decisively
-($p=1.9\times10^{-9}$, Wilcoxon, $n=30$).
-
-\begin{table}[t]
-\caption{Layers 24+25+26, bypass vs.\ two injection controls, $n{=}30$ samples
-(\textsc{countries\_capitals}). B1: isotropic noise. B2: another token's real,
-same-layer $\delta$, direction-normalized (harder control).}
-\label{tab:jointnecessity}
-\centering
-\begin{small}
-\begin{tabular}{lcc}
-\toprule
-Condition & Mean KL & Bypass/inject ratio \\
-\midrule
-Bypass (treatment) & 4.49 & --- \\
-Injection, isotropic (B1) & 0.65 & 6.9$\times$ \\
-Injection, permuted-token (B2) & 0.89 & 5.1$\times$ (median 7.1$\times$) \\
-\bottomrule
-\end{tabular}
-\end{small}
-\end{table}
-
-This rules out the two competing readings that would predict bypass $\approx$ injection
-(generic capacity/unrecoverability) or bypass $\ll$ injection (redundancy narrowly tuned
-to the model's own computation) -- the specific computation these three layers perform
-together matters, not just how much representational capacity is removed.
-
-\textbf{Does geometry predict this group-level effect?} We correlate $P_1$/$P_2$ against
-a corrected single-layer causal target -- bypass-KL in excess of a matched-magnitude
-generic injection (the same logic as \Cref{tab:jointnecessity}, applied per layer rather
-than per combination -- addresses the possibility that the original null above was an
-artifact of an uncorrected causal target. It is not: neither $P_1$ ($\rho=-0.101$,
-$p=0.61$) nor $P_2$ ($\rho=0.164$, $p=0.42$) is significant, and layers 24--26 remain in
-the bottom third by rank (19th/20th/23rd of 28) even under this corrected target. We read
-this as a genuine null rather than a failure to find the right transformation of the
-data: per-layer geometric summaries do not predict a joint, interactional causal
-property, which is consistent with -- though does not prove -- a broader pattern in this
-line of work that representational distinctiveness and causal importance are simply
-different axes (\Cref{sec:results:causal}).
-
-\textbf{An exploratory side-observation, checked and partially retracted.} We noticed
-$P_1$ and $P_2$ each significantly predict a layer's vulnerability to a \emph{generic}
-injection alone ($P_1$: $\rho=-0.39$, $p=0.04$; $P_2$: $\rho=-0.53$, $p=0.004$). Checking
-whether this reflects a real magnitude/reorientation effect or a confound (injected
-magnitude is matched to $\|\delta^\ell\|$ in absolute terms, while the residual stream's
-own norm grows substantially with depth in our model, more than 50-fold from the first
-to the deepest layers), we find $P_1$'s correlation collapses to noise once normalized by
-the ambient residual norm ($\rho=-0.006$, $p=0.98$) -- a norm-scaling artifact, which we
-retract. $P_2$'s correlation is unaffected by this specific check, since cosine
-similarity is already scale-invariant by construction, and we report it as it stands:
-real, but unplanned, exploratory, and not yet replicated on any other dataset.
-
-\subsection{Representational distinctiveness and causal importance are different axes}
-\label{sec:results:causal}
-
-For each measured sentence, we take its dominant fingerprint cluster (at $k{=}60$) and
-correlate that cluster's purity (with respect to the sentence's own functional category)
-against the sentence's measured causal importance (\Cref{sec:methods:causal}).
-\Cref{tab:causal-corr} reports Spearman $\rho$ across all six datasets. Every
-correlation is weak and non-significant; our best-powered test
-(\textsc{countries\_capitals}, $n{=}440$, roughly 5--10$\times$ the sample size of the
-other datasets) lands almost exactly at zero ($\rho{=}0.009$) -- the most decisive
-instance, of several in this paper, that representational distinctiveness and causal
-importance are different axes rather than an underpowered null.
-
-\begin{table}[t]
-\caption{Spearman correlation between fingerprint-cluster purity and causal importance
-(attention-suppression KL divergence), by dataset.}
-\label{tab:causal-corr}
-\centering
-\begin{small}
-\begin{tabular}{lccr}
-\toprule
-Dataset & $\rho$ & $p$ & $n$ \\
-\midrule
-\textsc{alphabet\_disjoint}  & 0.227 & 0.129 & 46 \\
-\textsc{alphabet}            & 0.187 & 0.203 & 48 \\
-\textsc{days\_of\_week}      & 0.173 & 0.122 & 81 \\
-\textsc{numbers\_letters}    & 0.056 & 0.605 & 88 \\
-\textsc{countries\_capitals} & \textbf{0.009} & 0.846 & \textbf{440} \\
-\textsc{ioi}                 & 0.009 & 0.952 & 50 \\
-\bottomrule
-\end{tabular}
-\end{small}
-\end{table}
-
-One anecdotal pattern from an earlier, single-dataset version of this analysis --
-\texttt{fact\_retrieval} sentences showing high representational purity but low causal
-importance -- does \emph{not} replicate: in \textsc{countries\_capitals},
-\texttt{fact\_retrieval} is instead the \emph{highest}-importance category. A different,
-more robust pattern (\texttt{final\_answer\_emission} having the lowest importance of any
-category) replicates in five of six datasets but breaks in \textsc{countries\_capitals},
-where samples frequently continue self-checking \emph{after} stating an answer --
-consistent with the pattern tracking how much downstream content follows a sentence, a
-positional artifact, rather than a stable property of the answer-emission category
-itself.
-
-\subsection{A successor circuit generalizes across ordinal categories, but relocates in
-depth}
+\subsection{A concrete mechanism: the successor circuit}
 \label{sec:results:successor}
 
-We first characterize, via direct attribution inspection (not clustering, which mostly
-fails the same substructure-artifact check as \Cref{sec:methods:fingerprint}'s retracted
-letter-subgroup claim), a four-phase attribution pattern in letter-recitation traces:
-attention-sink $\to$ semantic anchor $\to$ \emph{immediately preceding letter in the
-enumeration} (induction-like) $\to$ local punctuation. We confirm layer 16, head 14 is a
-genuine synthetic induction head (score 0.974 on the standard diagnostic) -- but, as a
-negative control, that head is \emph{not} the driver of the real letter-succession
-pattern: on every real instance we check, it attributes to punctuation, not the
-preceding letter. The real signal is distributed across a different head set
-(13, 3, 7, 9, 8), with head 13 the sharpest single specialist (53\% of instances, layer
-16).
+Via direct attribution inspection (unsupervised clustering of this signal mostly failed
+the same robustness check that sank two earlier, retracted subcluster claims), we find a
+four-phase attribution pattern in letter-recitation traces: attention-sink $\to$
+semantic anchor $\to$ \emph{immediately-preceding letter in the enumeration}
+(induction-like) $\to$ local punctuation. As a negative control, we confirm layer 16,
+head 14 is a genuine synthetic induction head by the standard diagnostic (score 0.974)
+-- but it is \emph{not} the real driver: on every instance checked it attributes to
+punctuation, not the preceding letter. The real signal is distributed across a
+different head set (13, 3, 7, 9, 8; head 13 the sharpest single specialist, 53\% of
+instances). This transfers to a second ordinal category (\texttt{days\_of\_week}): at
+that task's own peak layer (26), the best head reaches 54.3\% (44/81), nearly identical
+concentration, and is a member of the same candidate head set -- but the mechanism
+\emph{relocates in depth} (16 vs.\ 26) rather than recurring at a fixed layer, consistent
+with \citet{gould2024successor}'s claim of cross-category generality for this
+computation type.
 
-We then test whether this mechanism transfers to a second ordinal category,
-\textsc{days\_of\_week}, using the identical per-head, per-layer LRP-relevance argmax
-method on all 81 day-name recitation instances across our sample. At the task's own peak
-layer (26), the best single head reaches 54.3\% (44/81) -- nearly identical concentration
-to letters' 53\%, and that head (head 9) is a member of the same candidate set letters
-surfaced. The reading: a comparably sharp, single-head-dominated successor phenomenon
-exists for both ordinal tasks, relocated in depth (16 vs.\ 26) with partial head overlap
--- positive evidence for \citet{gould2024successor}'s claim of cross-category
-generality, with a genuine open question (sequence familiarity? token complexity?
-training data frequency?) about why the depth shifts, which we leave for future work.
+\subsection{Does relevance filtering help? A real but asymmetric answer}
+\label{sec:results:lrp}
 
-\subsection{Position confounds sentence-category probing (supporting result)}
-\label{sec:results:position}
+Across nine dataset/model combinations, filtering to the top-relevant attention heads
+improves \texttt{meta}-cluster recovery in six, leaves it flat in two, and shows a
+negligible decrease in one. \texttt{noise}-cluster recovery is flat in most cases but
+drops substantially (F$_1$ change $-0.25$ to $-0.42$) on three datasets
+(\texttt{countries\_capitals}, \texttt{ioi}, \texttt{ioi50}). A follow-up sweep across
+$K\in\{2,4,6,8\}$ on those three datasets shows this degradation is \textbf{not robust}:
+\texttt{countries\_capitals} improves at every $K$ except 4; \texttt{ioi50} flips sign
+between $K=4$ and $K=6$; only \texttt{ioi} shows a consistent, shrinking degradation
+across the range. We report this as a genuine, only partially-understood asymmetry
+rather than either a clean confirmation or refutation of the relevance-filtering
+hypothesis.
 
-The trajectory-geometry results above are entirely label-free. This section audits the
-alternative, label-dependent tool this line of work otherwise relies on --
-sentence-category probing -- as a supporting methodological contribution, not because our
-own headline results depend on it.
+\subsection{Joint causal necessity: the strongest result, and it replicates}
+\label{sec:results:necessity}
 
-\Cref{tab:position-recovery} reports the position-only control's AMI as a fraction of
-the real category probe's AMI, at $k{=}80$. Five of six datasets fall in a tight
-0.70--0.79 band; \textsc{ioi} is the outlier at 0.44, plausibly because its short,
-non-templated, procedurally varied samples give position far less to latch onto than the
-other tasks' more regular structure.
+Hard-ablating layers 24--26 collapses the CoT trace's final answer while reasoning stays
+coherent; three independent signals agree (behavioral collapse, degradation of the
+otherwise-pure \texttt{noise} cluster, and a logit-lens next-token-prediction check
+dropping from 89\% clean to $\sim$11\% ablated). Individually, these layers rank
+21st/25th/26th of 28 by single-layer causal importance -- near the bottom, not the top --
+yet bypassing all three \emph{together} collapses the answer far more than a
+matched-magnitude injection control, a result that survives escalating from isotropic
+noise to a harder same-subspace permutation control ($p=1.9\times10^{-9}$, 30 of 30
+samples, \texttt{countries\_capitals}). This effect \textbf{replicates on a second,
+structurally unrelated, well-powered task family} (\texttt{ioi50}: short, non-templated,
+procedurally varied, versus \texttt{countries\_capitals}'s single-fact recall): bypass
+beats the harder control in \textbf{41 of 41} measurable samples,
+$p=9.1\times10^{-13}$ -- stronger on every metric than the original. This converts our
+strongest positive result from a single-dataset finding into a replicated one.
 
-\begin{table}[t]
-\caption{Position-only AMI as a fraction of real-category AMI, $k{=}80$. High values
-mean a label carrying \emph{no} semantic content already recovers most of what the real
-probe reports.}
-\label{tab:position-recovery}
-\centering
-\begin{small}
-\begin{tabular}{lc}
-\toprule
-Dataset & Position AMI / Category AMI \\
-\midrule
-\textsc{alphabet}            & 0.79 \\
-\textsc{days\_of\_week}      & 0.78 \\
-\textsc{alphabet\_disjoint}  & 0.70 \\
-\textsc{countries\_capitals} & 0.70 \\
-\textsc{numbers\_letters}    & 0.71 \\
-\textsc{ioi}                 & 0.44 \\
-\bottomrule
-\end{tabular}
-\end{small}
-\end{table}
+\subsection{Single-layer metrics fail to detect this effect: a validity problem}
+\label{sec:results:validity}
 
-This alone does not mean the real probe's signal is fake: category still adds real
-information beyond position on every dataset (the ratio is $<1.0$ throughout). But
-naively subtracting, $\text{AMI(category)} - \text{AMI(position)}$, to estimate ``the
-real signal net of position'' is statistically invalid -- mutual information quantities
-do not decompose additively -- and an earlier version of our own analysis made exactly
-this error before we caught and corrected it. The properly conditional statistic
-(\Cref{sec:methods:position}) is the right tool.
-
-\textbf{Auditing the leading published result.} We verified directly from the LaTeX
-source of \citet{thoughtanchors2025} (the compiled PDF truncates before the relevant
-appendix, so we did not rely on it) that their reported macro-F1$=0.71$ sentence-category
-probe uses mean-pooled late-layer residual activations, a multinomial logistic
-regression, group-5-fold cross-validation by problem (preventing content leakage across
-folds, but not position leakage), and balanced class weights -- with no position feature
-and no position-only baseline. We searched their full compiled source for every mention
-of position: it appears in exactly two places, both scoped to a different analysis
-(their receiver-head/attention study), including their own explicit acknowledgment that
-\emph{``[their] receiver-head analyses are confounded by a sentence's position in the
-reasoning trace''} -- a statement never connected to the probe. We considered four
-candidate defenses of their probe against our confound and found none sufficient:
-sample-level (not position-level) cross-validation prevents content leakage but does
-nothing for position; raw pooled activations carry position implicitly by construction;
-balanced class weights address label imbalance, an orthogonal concern; and high
-per-category accuracy across categories with different typical positions demonstrates
-real content signal exists but is fully compatible with signal and the position confound
-coexisting, which is exactly what we measure. We state this precisely rather than as a
-gotcha: \citet{thoughtanchors2025} identify position confounding for one analysis in
-their paper and do not extend the observation to their probe; we show it applies there
-too, and quantify what survives.
-
-\textbf{What survives proper control.} \Cref{tab:conditional-ami} sweeps stratification
-granularity from 4 to 32 quantile bins. Retention decays substantially between 4 and 16
-bins on five of six datasets, then roughly plateaus from 16 to 32. Our best-powered
-dataset (\textsc{countries\_capitals}, 5{,}462 labeled tokens, the only one keeping the
-majority of its strata populated at 32 bins -- 27 of 32, minimum stratum size 37) gives
-the single most trustworthy trend in the sweep: retention plateaus at $\approx$49\%, not
-the 4-bin check's 77\%. The other five datasets thin to as few as 4--18 populated strata
-by 32 bins, so their finest-grained figures are estimated from a shrinking,
-unrepresentative subset rather than reliably measured.
-
-\begin{table}[t]
-\caption{Conditional AMI retention (\% of raw category AMI surviving position
-stratification), swept 4$\to$32 bins, $k{=}80$. \textsc{Countries\_capitals} has by far
-the most labeled tokens and is the only dataset supporting the 32-bin column reliably.}
-\label{tab:conditional-ami}
-\centering
-\begin{small}
-\begin{tabular}{lccccr}
-\toprule
-Dataset & 4 & 8 & 16 & 32 & $n$ \\
-\midrule
-\textsc{countries\_capitals} & 77.3 & 63.0 & 49.7 & \textbf{48.6} & 5462 \\
-\textsc{ioi}                 & 91.0 & 77.9 & 43.7 & 41.8 & 1676 \\
-\textsc{numbers\_letters}    & 77.6 & 60.0 & 49.6 & 34.7 & 1365 \\
-\textsc{alphabet\_disjoint}  & 84.4 & 53.8 & 35.0 & 31.2 & 777 \\
-\textsc{days\_of\_week}      & 80.2 & 60.2 & 32.9 & 25.6 & 1030 \\
-\textsc{alphabet}            & 66.5 & 35.4 & 43.1 & 44.3 & 784 \\
-\bottomrule
-\end{tabular}
-\end{small}
-\end{table}
-
-\textbf{Reading.} Nothing collapses toward zero under proper control -- category signal
-is genuinely not \emph{just} position -- but the honest effect size is roughly a third to
-a half of what an uncontrolled probe reports, not the two-thirds to nine-tenths a coarser
-4-bin control would suggest. \todo{a formal conditional mutual information estimator
-(rather than size-weighted within-bin AMI), continuous (non-binned) position as a
-covariate, and bin-edge sensitivity at fixed bin count are not yet finalized -- see
-\Cref{sec:limitations}.}
-
-\textbf{Calibration against a permutation null.} Every raw AMI number reported in this
-section (and in \Cref{sec:results:causal,sec:results:successor}'s category-dependent
-analyses) is well above chance, not merely internally comparable across datasets: shuffling
-category labels among labeled tokens 2000 times and recomputing AMI each time gives a null
-distribution centered at $\approx0$ (std 0.0007--0.006) at every swept $k$ on every
-dataset, with the observed value 13--261 standard deviations above it
-($p<0.0005$ throughout, the resolution limit of 2000 permutations). This does not change
-any reported AMI value -- it establishes that none of them are plausibly chance
-clustering agreement.
-
-\section{MATH integration (in progress)}
-\label{sec:math}
-
-\todo[inline]{This entire section describes in-progress work and should not be read as a
-finished result. Fill in or remove before submission.}
-
-A single well-sampled, naturalistic benchmark would let us test whether this paper's
-geometric results and position-controlled result -- currently resting entirely on six
-templated synthetic task families -- replicate outside that setting. We are integrating
-MATH \citep{hendrycks2021math}, chosen specifically because it is
-\citeauthor{thoughtanchors2025}'s own benchmark (direct comparability to their
-macro-F1$=0.71$) and because its per-problem difficulty levels give us a knob to tune a
-model's outcome variance into the 25--75\% success-rate band their resampling-based
-causal metric needs. A screening pass (100 problems, $k{=}8$ resamples, our primary
-model, difficulty level 1) is complete and confirms level 1 is far too easy for that
-band (corrected in-band fraction 5\%, not the naively-computed 25\%, once completions
-with no extractable answer are properly excluded from the denominator rather than scored
-as failures); levels 2 and 3 are the current bisection candidates.
-\todo{Full MATH generation via the relevance-computing pipeline is substantially more
-expensive per token than our synthetic tasks (no key-value caching, since every
-generation step needs a live, uncached forward and backward pass for relevance) --
-real-timing measurement in progress.}
+Per-layer geometric magnitude and reorientation are weak, non-significant predictors of
+single-layer causal importance ($\rho=-0.207$, $p=0.29$; $\rho=0.023$, $p=0.91$;
+$n=28$ layers). Because layers 24--26 individually rank near the bottom by the same
+single-layer metric despite being jointly indispensable (\Cref{sec:results:necessity}),
+this null is a \textbf{validity problem, not informative evidence} about whether geometry
+predicts causal importance -- the instrument fails to detect an effect independently
+known to exist. This motivates our use of group-level and relevance-filtered analyses
+(\Cref{sec:results:lrp,sec:results:necessity}) over single-layer description throughout.
 
 \section{Limitations}
 \label{sec:limitations}
 
-We state these plainly rather than as a closing formality, since several are the
-difference between a general claim and a scoped one.
+\textbf{Single model, mostly.} All results beyond \Cref{sec:results:structure,%
+sec:results:modelfingerprint} (which include a Qwen3-8B check) are Qwen3-0.6B only.
+Apertus-8B does not produce \texttt{<think>} output on any task tried (a trained
+behavior, not a bug, confirmed on two task families) and contributes only the population
+tortuosity data point above. Bridge-loaded models (architecturally incompatible with our
+primary tooling) show a substantially more extreme version of the model-fingerprint
+pattern (near-random-walk tortuosity); whether this is a genuine property or a
+loading-path artifact is an open, unresolved question we flag rather than adjudicate.
 
-\textbf{Second model: infrastructure is not the same as analysis.} Every geometric and
-causal result above is on one model (Qwen3-0.6B). We have separately confirmed our LRP
-implementation achieves exact relevance conservation on two further models (Apertus-8B
-and Phi-4-mini-reasoning, \Cref{sec:methods:lrp}), and completed one full task run on
-Apertus-8B, but that model does not produce \texttt{<think>}/\texttt{</think>} output on
-any task we have tried it on -- a trained-behavior property, not a code defect, confirmed
-on two structurally different tasks -- so only the population-level geometric baseline
-(tortuosity) transfers to it; the token-class-specific results
-(\Cref{sec:results:geometry}) cannot currently be tested on this model at all, in either
-direction. A CoT-capable third model (Phi-4-mini-reasoning, via a separate loading path
-since our primary tooling's rotary-position implementation does not support this model's
-context-scaling scheme) and a second-scale run of our primary model (Qwen3-8B) both have
-generation complete or in flight as of this writing. \todo{Qwen3-8B now has Open gap 8's
-geometric analysis run on three further datasets, and the result complicates rather than
-cleanly closes this limitation: population median tortuosity sits consistently below the
-Qwen3-0.6B range on all three (opposite direction from Apertus-8B's own single check,
-which landed at/above it), while the class-specific archetype ({\tt<think>}/{\tt</think>})
-still replicates directionally. Whether this is a model-scale effect (0.6B vs.\ 8B, same
-family) or architecture-specific (differs from Apertus, a different family) is not yet
-distinguishable with only one other 8B-scale model to compare against. Phi-4-mini-
-reasoning has not yet had this analysis run at all. This -- not mere generation
-completing -- is what would make a result in
-\Cref{sec:results:geometry,sec:results:causalgeom} a cross-model claim rather than a
-single-model one, and it is not yet in a stable enough state to write up as one.}
+\textbf{The relevance-filtering result needs more than one operating point.} Our
+$K$-sweep (\Cref{sec:results:lrp}) covers only the three datasets that initially showed
+degradation; whether the \texttt{meta}-class improvement is similarly robust across $K$
+has not yet been checked.
 
-\textbf{Synthetic tasks.} Our six datasets are six rows in a replication table, not six
-qualitatively different kinds of evidence -- they share the same templated generation
-process and the same LLM annotator. MATH integration (\Cref{sec:math}) is in progress
-specifically to address this.
+\textbf{The founding delta-vs-state premise is unresolved, deliberately.} An early test
+of whether tracking change outperforms tracking state at recovering category structure
+returned no clean answer. We do not read this as invalidating the geometric or causal
+results above, which describe properties of a trajectory a state-only view cannot
+express by construction, but we do not claim deltas have been shown superior to state as
+a general representational choice.
 
-\textbf{Category label reliability: checked, substantial overall, one category fragile.}
-Our category labels were originally assigned without any inter-annotator agreement
-statistic -- a limitation \citeauthor{thoughtanchors2025} share, reporting none for their
-own labels either. We closed this with a genuinely independent second annotation (not a
-re-run of the same labeling process, since the original labels were produced by manual
-reading, not a callable procedure): a separate annotator, with no access to the original
-labels, re-labeled a 106-sentence stratified subsample of \textsc{countries\_capitals}
-(our best-powered dataset) from raw sentence text alone, using the identical published
-taxonomy. Cohen's $\kappa=0.714$ (``substantial'' agreement, raw agreement 80/106) --
-already ahead of \citeauthor{thoughtanchors2025}'s unreported figure. This aggregate
-number understates how uneven reliability actually is: six of seven testable categories
-show strong-to-perfect agreement (\texttt{uncertainty\_management} and
-\texttt{final\_answer\_emission} both 15/15; \texttt{problem\_setup} and
-\texttt{fact\_retrieval} both 14/15), but \texttt{result\_consolidation} shows
-\textbf{0/15} -- every single instance was relabeled as something else, spread across
-three other categories rather than concentrated on one confusable neighbor, indicating a
-genuine boundary weakness in this specific category rather than one annotator's
-idiosyncrasy. \texttt{active\_computation} remains untested (only one instance exists in
-the entire 50-sample labeled set). This limitation applies to
-\Cref{sec:results:position,sec:results:causal,sec:results:successor}, which use category
-labels -- results resting specifically on \texttt{result\_consolidation} should be read
-with more caution than the rest -- and does not apply to
-\Cref{sec:results:geometry,sec:results:causalgeom}, which are entirely label-free.
-\todo{A fully human-validated stratified subsample, rather than a second LLM annotator,
-would make this stronger still; not yet done.}
+\section{Conclusion}
+\label{sec:conclusion}
 
-\textbf{The founding premise (delta vs.\ state) is open, and we do not build on it.} We
-tested whether tracking representational \emph{change} (our fingerprint object's
-clustering-based validity, \Cref{sec:methods:fingerprint}) outperforms tracking raw
-\emph{state} at recovering category structure, and found no evidence for it: across six
-datasets and a symmetric neighbor-count sweep, 3 datasets favor delta, 1 is a coin flip,
-and 2 -- including our best-powered dataset, with the single largest margin in the sweep
--- favor state. Two earlier passes at this comparison reported a clean delta win; both
-were artifacts of an asymmetric sweep (holding the delta side fixed at whatever
-neighbor-count value happened to already be on disk), which we caught and corrected
-before treating either earlier result as real. We do not read this null as invalidating
-the geometric results in \Cref{sec:results:geometry}: tortuosity, multi-lag persistence,
-and growing distinctness are properties of a \emph{path}, which a state-only
-representation cannot express by construction (there is no state-only analogue to
-compare against, unlike the clustering-based category-recovery task this null result
-concerns) -- but we do not claim deltas have been shown superior to state as a general
-representational choice, and the paper's contribution rests on the geometric object's
-own empirical properties, not on that claim.
-
-\textbf{Our conditional-AMI estimator is an approximation.} Size-weighted within-bin AMI
-(\Cref{sec:methods:position}) approximates $I(\text{cluster}; \text{category} \mid
-\text{position})$; it is not the formal estimator, and we have not yet swept bin-edge
-placement at fixed bin count or tried a continuous position covariate. (Raw AMI
-magnitudes \emph{are} calibrated against a permutation null -- see
-\Cref{sec:results:position}'s ``Calibration against a permutation null'' paragraph --
-this approximation concerns the conditioning-on-position estimator itself, not whether
-the reported AMI values are distinguishable from chance.)
-
-\textbf{The bypass-vs-injection causal design is not a perfectly matched control.} Bypass
-and injection compound differently through downstream layers -- both permit downstream
-compensation, but the induced trajectories are not matched beyond the perturbation
-magnitude at the intervention point itself. This does not undermine the \emph{direction}
-of \Cref{tab:jointnecessity}'s result, which we verified survives a substantially harder
-control than originally used, but the reported effect sizes should not be read as precise
-estimates.
-
-\section{Discussion and Conclusion}
-\label{sec:discussion}
-
-We show that a token's layer-wise representational trajectory -- not just its final
-state -- is a real, measurably structured object: far straighter than chance at the
-population level, with a specific, reproducible archetype for reasoning-delimiter tokens
-that a purely static analysis has no way to express. We then asked the harder question of
-whether this structure is causally load-bearing, not merely descriptive, and found a
-genuinely mixed answer that we think is more useful reported honestly than smoothed over:
-geometry does not predict causal importance locally, even under a causal target corrected
-for a specific confound we identified along the way, but a real joint-necessity effect
-exists among layers that are individually redundant, and it survives a substantially
-harder control than the one we first used. We view stress-testing our own positive
-result until it either broke or held -- rather than reporting the first version that
-looked clean -- as part of the paper's contribution, not an afterthought.
-
-Separately, we audited the standard tool this line of work uses to connect internal
-state to CoT structure (sentence-category probing) and found it substantially confounded
-by sequence position, verified this in the leading published result of this kind, and
-quantified what survives proper control. We report this as a supporting, not central,
-contribution: it explains why we build a label-free alternative rather than trusting
-category probes as our primary instrument, and we think an interpretability paper's
-obligation to report a confound in a widely-used tool is not diminished by also having a
-positive result to lead with. We also chose to report, rather than quietly work around, a
-null result on our own original methodological premise (change vs.\ state): our
-best-powered dataset does not support it, and we build the paper's actual contribution on
-the geometric object's directly measured properties rather than on that unresolved
-premise.
-
-\section{Impact Statement}
-
-This paper presents work whose goal is to advance the interpretability of large language
-model reasoning. Two points are worth practical note. First, our position-confound result
-has a direct implication for downstream uses of sentence-category probes (e.g.\
-monitoring or steering based on inferred reasoning-step category): practitioners should
-control for position before trusting a probe's apparent sensitivity to reasoning content.
-Second, our causal-geometry result -- that a group of individually-redundant layers can
-be jointly necessary -- is a caution against inferring a component's importance from
-single-component ablation studies alone, a common practice in interpretability and
-model-editing work; joint or grouped interventions may be necessary to detect this class
-of effect. We are not aware of other potential societal consequences of this work that
-warrant specific discussion here.
+A label-free, compressed summary of how token representations change across depth
+carries real, reproducible, class-specific structure, and at least one instance of that
+structure -- three individually redundant layers -- is causally necessary as a group in
+a way single-layer analysis cannot detect and that replicates, strengthening, across
+structurally unrelated tasks. Filtering that structure by the model's own notion of
+relevance changes what is recoverable, but not uniformly, and we report that asymmetry
+directly rather than resolve it prematurely.
 
 \bibliography{references}
 \bibliographystyle{icml2026}
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\newpage
-\appendix
-\onecolumn
-\section{Reproducibility notes}
-\label{app:repro}
-
-\todo[inline]{This appendix is a stub -- expand with exact hyperparameters, cluster job
-IDs / commit hashes for the runs each number in this draft comes from, and dataset
-sample counts per task, before submission. All numbers in the main text are transcribed
-from this project's own \texttt{STATUS.md}, \texttt{PROJECT\_PROGRESS.md}, and
-\texttt{METAPLAN.md} tracking documents, which retain the full evidence trail (including
-retracted intermediate readings) and should be treated as the source of truth if this
-appendix and the main text ever disagree.}
-
-\subsection{Fingerprint construction hyperparameters}
-Random projection: $n_{\text{components}}=32$ per layer transition, fixed random seed.
-Spectral clustering (\Cref{sec:results:causal,sec:results:successor}'s clustering-based
-checks only; \Cref{sec:results:geometry}'s geometric statistics use the raw delta
-sequence directly, no clustering): nearest-neighbors affinity; neighbor count validated
-empirically per dataset (10 for four of six datasets; \textsc{countries\_capitals}
-requires 20, confirmed via an adjusted-Rand-index sweep against saved cluster labels
-rather than assumed). Cluster count $k$ swept over $\{8, 15, 25, 40, 60, 80\}$ throughout.
-
-\subsection{LRP rule set}
-\texttt{ln-rule-pre} (RMSNorm), \texttt{ah-rule} (attention: value receives 100\%
-relevance), \texttt{half-rule-mlp} (gated MLP), \texttt{identity-rule-act} (activation
-functions, construction-based homogeneity). See \Cref{sec:methods:lrp}.
-
-\subsection{Causal-geometry hyperparameters}
-Bypass/injection sweep: all 28 layers individually; pairwise and triple combinations for
-layers 24, 25, 26 specifically (identified as the behaviorally load-bearing block via
-\Cref{sec:methods:fingerprint}'s necessity test). KL measured at the final-answer span
-only (after \texttt{</think>}, before the first terminal token), 30 samples
-(\textsc{countries\_capitals}). Injection vectors (both isotropic and permuted-token
-variants) are per-token, per-layer, norm-matched to that token's own clean-run delta
-norm at that layer.
 
 \end{document}
