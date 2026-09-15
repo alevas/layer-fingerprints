@@ -873,11 +873,18 @@ on two structurally different tasks -- so only the population-level geometric ba
 direction. A CoT-capable third model (Phi-4-mini-reasoning, via a separate loading path
 since our primary tooling's rotary-position implementation does not support this model's
 context-scaling scheme) and a second-scale run of our primary model (Qwen3-8B) both have
-generation complete or in flight as of this writing. \todo{Neither has had Open gap 8's
-geometric analysis run against it yet -- generation completing does not by itself close
-this limitation, and we do not claim it does. This is the single most important
-remaining step before any result in \Cref{sec:results:geometry,sec:results:causalgeom}
-can be called a cross-model claim rather than a single-model one.}
+generation complete or in flight as of this writing. \todo{Qwen3-8B now has Open gap 8's
+geometric analysis run on three further datasets, and the result complicates rather than
+cleanly closes this limitation: population median tortuosity sits consistently below the
+Qwen3-0.6B range on all three (opposite direction from Apertus-8B's own single check,
+which landed at/above it), while the class-specific archetype ({\tt<think>}/{\tt</think>})
+still replicates directionally. Whether this is a model-scale effect (0.6B vs.\ 8B, same
+family) or architecture-specific (differs from Apertus, a different family) is not yet
+distinguishable with only one other 8B-scale model to compare against. Phi-4-mini-
+reasoning has not yet had this analysis run at all. This -- not mere generation
+completing -- is what would make a result in
+\Cref{sec:results:geometry,sec:results:causalgeom} a cross-model claim rather than a
+single-model one, and it is not yet in a stable enough state to write up as one.}
 
 \textbf{Synthetic tasks.} Our six datasets are six rows in a replication table, not six
 qualitatively different kinds of evidence -- they share the same templated generation
