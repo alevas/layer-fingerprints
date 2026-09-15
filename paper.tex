@@ -324,7 +324,11 @@ retraction explicitly rather than silently dropping the earlier claim. At a fine
 granularity, per-(token, layer-transition) clusters (rather than the concatenated
 fingerprint) are 89--93\% single-transition-specific across a $5\times$ range of $k$
 (25--120) -- tokens mostly do not jump between clusters as depth increases, they occupy
-one characteristic transition-specific niche.
+one characteristic transition-specific niche. \textbf{Cross-model check:} on Qwen3-8B
+(13$\times$ larger, 36 vs.\ 28 layers), the identical sweep gives 95.0--99.2\%
+single-transition specificity on two further task families (\textsc{days\_of\_week},
+\textsc{numbers\_letters}) -- above the entire 89--93\% band the primary model produces,
+not merely within it.
 
 \textbf{Necessity.} We separately test whether the layers most associated with this
 structure are behaviorally load-bearing, via hard (zero-)ablation of layers 24--26 (as
