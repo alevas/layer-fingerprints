@@ -102,9 +102,13 @@ from tokens that simply drift with the population. Independent component analysi
 recovers a dedicated \texttt{<think>} component in every dataset we test. We then ask
 whether this geometry is more than descriptive: does it predict which layers are
 \emph{causally} load-bearing? At the single-layer level, no -- geometric magnitude and
-reorientation are weak, non-significant predictors of causal importance, a null we
-verify survives correcting for a specific confound (generic-perturbation vulnerability)
-that a naive read of the correlation would miss. But at the \emph{group} level, we find
+reorientation are weak, non-significant predictors of causal importance, even after
+correcting for a specific confound (generic-perturbation vulnerability) that a naive
+read of the correlation would miss. But we show this null is a validity problem rather
+than a clean answer: the single-layer metric itself fails to detect the one causal
+effect this paper independently establishes three other ways (individually ranking
+21st/25th/26th of 28 layers), so its non-correlation with geometry is not yet
+informative either way. At the \emph{group} level, though, we find
 a real, controlled effect: three consecutive layers that are individually
 low-importance and individually redundant are jointly necessary -- bypassing them
 collapses the trace's answer while reasoning stays coherent, and this effect survives a
@@ -504,18 +508,16 @@ Dataset & Tortuosity \\
 \midrule
 Random-walk baseline (simulated) & 5.196 \\
 \midrule
-\textsc{alphabet\_disjoint}  & 1.84--2.02 range \\
-\textsc{alphabet}            & (within range) \\
-\textsc{days\_of\_week}      & (within range) \\
-\textsc{numbers\_letters}    & (within range) \\
-\textsc{countries\_capitals} & (within range) \\
-\textsc{ioi}                 & (within range) \\
+\textsc{alphabet\_disjoint}  & 1.97 \\
+\textsc{alphabet}            & 1.97 \\
+\textsc{days\_of\_week}      & 1.91 \\
+\textsc{numbers\_letters}    & 1.88 \\
+\textsc{countries\_capitals} & 2.02 \\
+\textsc{ioi}                 & 1.84 \\
 \bottomrule
 \end{tabular}
 \end{small}
 \end{table}
-\todo{Table currently reports the range only; expand to per-dataset exact medians from
-PROJECT\_PROGRESS.md's Open gap 8 tortuosity entries before submission.}
 
 \textbf{A token-class-specific archetype.} \texttt{<think>}/\texttt{</think>} tokens
 show elevated tortuosity (2.62--2.70) in \emph{every} dataset without exception, paired
@@ -925,8 +927,11 @@ own empirical properties, not on that claim.
 \textbf{Our conditional-AMI estimator is an approximation.} Size-weighted within-bin AMI
 (\Cref{sec:methods:position}) approximates $I(\text{cluster}; \text{category} \mid
 \text{position})$; it is not the formal estimator, and we have not yet swept bin-edge
-placement at fixed bin count, tried a continuous position covariate, or calibrated raw
-AMI magnitudes against a permutation null.
+placement at fixed bin count or tried a continuous position covariate. (Raw AMI
+magnitudes \emph{are} calibrated against a permutation null -- see
+\Cref{sec:results:position}'s ``Calibration against a permutation null'' paragraph --
+this approximation concerns the conditioning-on-position estimator itself, not whether
+the reported AMI values are distinguishable from chance.)
 
 \textbf{The bypass-vs-injection causal design is not a perfectly matched control.} Bypass
 and injection compound differently through downstream layers -- both permit downstream
