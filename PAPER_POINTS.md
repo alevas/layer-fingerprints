@@ -101,11 +101,23 @@ dataset/top-K → `plot_lrp_head_filtering_results.py` → CSV + plot. No hand-t
 anywhere in the chain (raw JSON results and the regenerated CSV/plot are committed
 alongside the script).
 
+**Correction (2026-09-16): the `noise`-degradation pattern is NOT robust.** Swept
+`top_k` in {2,4,6,8} on the three affected datasets: `countries_capitals` actually
+*helps* at every `top_k` except 4 (which looks like an outlier, not the trend); `ioi50`
+flips sign between top4 and top6; only `ioi` shows a consistent (shrinking) hurt across
+the range. Treat the "asymmetric, `meta` 6/9 vs. `noise` 3/9" framing above as a
+single-point (`top_k=4`) result, not a settled property — worth re-checking `meta`
+across the same `top_k` range before trusting that side of the finding either.
+
 **Still open, explicitly named in the doc, not yet addressed**: does relevance
 correlate with which delta-cluster a token actually lands in, specifically (not just
-aggregate cluster quality)? And: is the `noise`-degradation pattern robust across
-`top_k`/`n_clusters`, or an artifact of the single point tested so far (top-4-of-16 or
-top-8-of-32, k=25)?
+aggregate cluster quality)? Design spec (2026-09-16, not yet built): correlate a
+token's z-scored layerwise delta profile against its relevance profile, using either
+relevance that *led to* this token or relevance *driven from* it — both require the raw
+per-sample `*_lrp_cache.h5` caches (cross-token attribution), not
+`relevance_scores_all_tokens` (which is self-relevance — a token's own heads'
+contribution to its own output, a different quantity). Full spec in
+`PROJECT_PROGRESS.md`'s "Design spec" entry (2026-09-16).
 
 → `STATUS.md`'s scope-correction note; `PROJECT_PROGRESS.md`'s two "LRP head-filtered
 clustering" entries (2026-09-15).
