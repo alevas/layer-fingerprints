@@ -107,6 +107,39 @@ Two lines of evidence that layers *do* exhibit repeating, class-specific behavio
 → `STATUS.md` item 7 (Open gap 8); the "wanders and returns" / tortuosity entries in
 `PROJECT_PROGRESS.md`.
 
+**A genuine model-level fingerprint, distinct from the per-layer question above (added
+2026-09-16).** Asked directly: not "do individual layers repeat a pattern" (§3's main
+answer there leans no — layer-locked clustering means depth is informative, not
+repetitive), but "is there an overall signature of *the model itself*, stable across
+samples/tasks?" Three independent metrics converge on yes:
+
+- **Tortuosity**: Qwen3-0.6B sits in a tight 1.84–2.02 band across all 6 task families,
+  regardless of task content. Qwen3-8B (same family, 13x larger) has its own tight,
+  task-consistent band — 1.73–1.80 across all 3 datasets tested — but a *different* band,
+  entirely below Qwen3-0.6B's range. Apertus-8B (different architecture family) lands at
+  2.04, above the Qwen3-0.6B range.
+- **Layer-lockedness**: Qwen3-0.6B clusters 89–93% single-transition-specific across its
+  task range; Qwen3-8B clusters 95–99%, consistently higher across all 3 of its datasets.
+- **Multi-lag cosine persistence height**: Qwen3-0.6B peaks at 0.113–0.153 across tasks;
+  Qwen3-8B peaks higher, 0.162–0.174, across its own tasks.
+
+Same pattern three times: task-invariant *within* a model, different *between* models.
+This is a stronger, more defensible sense of "fingerprint" than a literal per-layer
+repeating pattern — a task-invariant geometric signature characteristic of the model.
+
+**Open question, stated plainly, not glossed over**: only three data points loaded the
+same way (Qwen3-0.6B, Qwen3-8B, Apertus, all via `HookedTransformer`) exist — one scale
+change within a family, one architecture change. Not enough to separate whether this
+signature tracks *scale* or *architecture*, since both moved at once in every comparison
+available. Separately, Nemotron/SmolLM3 (`TransformerBridge`-loaded) show a much more
+extreme version of this (near-random-walk tortuosity, 4.9–5.0) — still an open,
+unresolved question of whether that's a real model property or a loading-path artifact;
+a diagnostic job was submitted to check this (`job_submittion_bridge_loader_diagnostic.sh`,
+job 4891144) but its result was never confirmed in this session.
+
+→ `PROJECT_PROGRESS.md`'s tortuosity/multi-lag entries for Qwen3-0.6B, Qwen3-8B, and
+Apertus-8B; the bridge-loader diagnostic entry for the open Nemotron/SmolLM3 question.
+
 ## 4. Do deltas convey information, cluster well, hint at important updates?
 
 Yes to the first two (§§1–3 above). The third — do deltas hint at which updates matter
