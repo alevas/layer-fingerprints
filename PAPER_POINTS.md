@@ -122,6 +122,22 @@ contribution to its own output, a different quantity). Full spec in
 → `STATUS.md`'s scope-correction note; `PROJECT_PROGRESS.md`'s two "LRP head-filtered
 clustering" entries (2026-09-15).
 
+**Complementary mechanistic evidence: the successor circuit (added 2026-09-16, decided
+with the user).** LRP-filtering and delta-clustering both ask *which heads matter* for a
+token's update; this answers the doc's related "second step" question instead — *how*
+is a specific update actually implemented via self-attention message-passing? Via direct
+attribution inspection (not clustering), a real head set (13, 3, 7, 9, 8) drives
+letter-succession — with a genuine negative control: the "textbook" synthetic induction
+head (layer 16, head 14) scores high on the standard induction diagnostic but is *not*
+the real driver on actual instances. Generalizes to a second ordinal category
+(`days_of_week`, comparable concentration: 54.3% one-back attribution at layer 26 vs.
+letters' 53% at layer 16) but *relocates in depth* — a partial touch on §3's "repeating
+behavioral patterns," with the depth shift itself an open, unexplained question.
+
+→ `STATUS.md` item 6 (Open gap 7); `OUTPUTS_MAPPING.md` for the two backing output
+directories (`outputs/alphabet/baseline/2026-07-01_17-47-56-alph-no-interv`,
+`alex_binding/cluster_res/2026-05-18_17-00-10`).
+
 ## 6. Robustness under perturbation
 
 The validation step, once structure is established: if fingerprint/clustering structure
