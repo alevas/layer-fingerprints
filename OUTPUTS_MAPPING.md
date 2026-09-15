@@ -9,7 +9,6 @@ against `PAPER_POINTS.md` (this paper's actual ICLR 27 Drafting scope), 2026-09-
 | Path | Backs |
 |---|---|
 | `outputs/alphabet_disjoint/baseline/2026-07-20_00-00-16` | primary dataset — meta/noise validity, necessity test (§6) |
-| `outputs/alphabet_disjoint/baseline/2026-07-19_22-54-00` | necessity test cross-run check (§6) |
 | `outputs/alphabet_disjoint/layer_clamp/clamp_layers_24-26/2026-07-19_23-30-29` | necessity test, clamp comparison (§6) |
 | `alex_binding/cluster_res/2026-08-31_14-22-37` | layers-24-26 zero-ablation bypass run (§6) |
 | `alex_binding/cluster_res/2026-08-31_14-36-17` | full-28 zero-ablation bypass run (§6) |
@@ -39,3 +38,14 @@ paper's evidence, not held out as a separate direction.
 
 `outputs/2026-09-10_18-32-22` (Apertus, parked), any Nemotron/SmolLM3/Phi-4 bridge-model
 output, `outputs/math_pilot/*`, the Qwen3-8B 100-sample `countries_capitals` run.
+
+## Corrected (2026-09-16): removed one mischaracterized entry
+
+`outputs/alphabet_disjoint/baseline/2026-07-19_22-54-00` was previously listed as
+eligible, "backs the necessity test cross-run check (§6)" — wrong on two counts. It's
+actually an early `meta`/`noise` cluster-replication check (unrelated to the necessity/
+ablation test), and `RUN_INDEX.md`'s own description marks it explicitly superseded and
+confounded ("confounded with the intervention itself... superseded in strength by the
+2026-08-14 confound-free check... reference only, not actively used past that one
+check"). Not used anywhere in `PAPER_POINTS.md`'s actual text — removed from the eligible
+table rather than left as an unfulfilled claim.
