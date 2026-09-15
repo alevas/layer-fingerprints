@@ -169,17 +169,47 @@ contribution to its own output, a different quantity). Full spec in
 → `STATUS.md`'s scope-correction note; `PROJECT_PROGRESS.md`'s two "LRP head-filtered
 clustering" entries (2026-09-15).
 
-**Complementary mechanistic evidence: the successor circuit (added 2026-09-16, decided
-with the user).** LRP-filtering and delta-clustering both ask *which heads matter* for a
-token's update; this answers the doc's related "second step" question instead — *how*
-is a specific update actually implemented via self-attention message-passing? Via direct
-attribution inspection (not clustering), a real head set (13, 3, 7, 9, 8) drives
-letter-succession — with a genuine negative control: the "textbook" synthetic induction
-head (layer 16, head 14) scores high on the standard induction diagnostic but is *not*
-the real driver on actual instances. Generalizes to a second ordinal category
-(`days_of_week`, comparable concentration: 54.3% one-back attribution at layer 26 vs.
-letters' 53% at layer 16) but *relocates in depth* — a partial touch on §3's "repeating
-behavioral patterns," with the depth shift itself an open, unexplained question.
+**Complementary mechanistic evidence: the successor circuit (added 2026-09-16, elaborated
+2026-09-16, decided with the user).** LRP-filtering and delta-clustering both ask *which
+heads matter* for a token's update; this answers the doc's related "second step"
+question instead — *how* is a specific update actually implemented via self-attention
+message-passing? (Bundled in `STATUS.md` item 6 with two other, much weaker Open gap 7
+sub-threads — a thin, unreplicated `noise`-cluster attribution-enrichment finding and a
+causal-channel test that found no significant effect across three datasets — neither of
+those is part of this point.)
+
+*How it was found*: not via the paper's usual unsupervised clustering — that was tried
+first and mostly failed the same robustness check that sank the retracted
+letter-subgroup/discourse claims. One stable sub-cluster survived (letters reciting an
+enumeration), and *direct inspection* of that cluster, not clustering itself, is what
+found the mechanism, later confirmed to generalize beyond the cluster that surfaced it.
+
+*The mechanism*: a four-phase attribution pattern in letter-recitation traces —
+attention-sink → semantic anchor → **immediately-preceding letter in the enumeration**
+(induction-like) → local punctuation.
+
+*The negative control, which is what makes this credible rather than a pattern-matched
+story*: layer 16, head 14 is confirmed a genuine induction head by the standard synthetic
+diagnostic (score 0.974, textbook signature) — but it is *not* the driver of the real
+letter-succession pattern. On every real instance checked, that head attributes to
+punctuation, not the preceding letter. The actual signal is distributed across a
+different head set: **13, 3, 7, 9, 8** — head 13 is the sharpest single specialist (53%
+of instances, at layer 16).
+
+*Cross-category generalization, and a caught error along the way*: tested on
+`days_of_week` (81 day-name recitation instances). First reported as "essentially flat,
+2.6-6.0%, no specialist" — wrong, caught by an audit: it used the wrong denominator
+(averaged across all 28 layers including near-zero ones, vs. letters' un-averaged
+layer-16-only number). Recomputed correctly at `days_of_week`'s own peak layer (26): best
+head hits **54.3% (head 9, 44/81)** — nearly identical concentration to letters' 53%, and
+head 9 is a member of the *same* candidate set (13/3/7/9/8) letters surfaced.
+
+*Honest reading*: a comparably sharp, single-head-dominated successor mechanism exists
+for both ordinal categories — but it relocates in depth (layer 16 → 26) with only
+partial head overlap. Real generalization of the *mechanism type*, not of a fixed
+circuit at a fixed depth — a partial touch on §3's "repeating behavioral patterns." Why
+the depth shifts (sequence familiarity? token complexity? training-data frequency?) is
+an open, unexplained question.
 
 → `STATUS.md` item 6 (Open gap 7); `OUTPUTS_MAPPING.md` for the two backing output
 directories (`outputs/alphabet/baseline/2026-07-01_17-47-56-alph-no-interv`,
