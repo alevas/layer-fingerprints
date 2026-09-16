@@ -80,15 +80,31 @@ Two independent, unsupervised routes both find the same kind of structure:
   Qwen3-0.6B band).
 - **ICA recovers a dedicated `<think>`/`</think>` independent component in every
   dataset tested** — a clean, unsupervised separation of one transformation type,
-  achieved without ever looking at labels.
+  achieved without ever looking at labels. Checked against the representation
+  ambiguity directly (2026-09-16): tested on final-layer activations, on activations
+  stacked across all layers, and on the fingerprint object itself — the component is
+  recovered in **all three**, on all 9 dataset/model combinations tested, so this
+  is not an artifact of picking one representation. It is strongest on final-layer
+  and fingerprint input (|z| 6.4–14.5) and present but weaker under naive
+  all-layers stacking (|z| 1.1–3.1) — pooling every layer together dilutes a signal
+  that is really concentrated in a few layers, which the fingerprint object (a
+  cross-layer summary, not a naive stack) recovers as well as or better than
+  final-layer activations alone (stronger on 7/9 datasets).
 
-→ `STATUS.md` item 4 (89%-layer-locked); `PROJECT_PROGRESS.md`'s ICA entries.
+→ `STATUS.md` item 4 (89%-layer-locked); `PROJECT_PROGRESS.md`'s ICA entries
+(including the 2026-09-16 3-mode representation check).
 
 ## 3. The "layer fingerprint" — repeating behavioral patterns across layers
 
 The fingerprint is a compressed, label-free summary of a token's per-layer deltas
 (random-projected and concatenated across every transition) — built specifically to
 answer the doc's own stated compression problem ("how do we compress information from
+each layer — concatenating each rep or delta would be too high-dim"). It is a real,
+computed, persisted artifact, not just a description: built by the pre-existing
+`step_15_fingerprints.py` and saved as `fingerprints.npy` per dataset in
+`step_15_outputs_k*/` (identical across `k`, only the downstream clustering differs by
+`k`). Confirmed working end-to-end this session (2026-09-16) as an ICA *input*
+representation too (the `fingerprint` mode above) — not just a clustering input.
 each layer — concatenating each rep or delta would be too high-dim").
 
 Two lines of evidence that layers *do* exhibit repeating, class-specific behavior:
@@ -300,8 +316,12 @@ looked strong on a single point and got visibly weaker under its own robustness 
    across a 5x range of k, replicates *stronger* on a second model (Qwen3-8B: 95-99%,
    above the entire 0.6B band).
 3. **ICA's `<think>` component (§2)** — dedicated, distinctive, in every dataset tested,
-   no exceptions. The project's own standing description: "the most robust finding of
-   this thread."
+   no exceptions, and now checked against representation choice specifically
+   (2026-09-16): recovered under final-layer activations, all-layers stacking, AND the
+   fingerprint object itself, on all 9 dataset/model combinations. Strongest on
+   final-layer/fingerprint input, present but weaker on naive all-layers stacking — a
+   dilution effect, not a disappearance. The project's own standing description: "the
+   most robust finding of this thread."
 4. **"Wanders and returns" (§3)** — reproducible archetype, no exceptions across 6
    datasets.
 5. **The successor circuit (§5)** — real head set, a genuine negative control that
